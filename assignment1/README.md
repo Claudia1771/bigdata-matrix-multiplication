@@ -20,7 +20,7 @@ The report is [`report/Assignment01_AlvarezGonzalez_Report.pdf`](report/Assignme
 | `scripts/analyze.py` | Summary tables and figures → `results/summary.csv`, `results/fit.csv`, `results/fig*.png` |
 | `results/` | Raw measurements, summaries, figures and the log of the reported run |
 | `results/preliminary_run_unpinned/` | Preliminary run without CPU affinity (kept as evidence, not used for the main results) |
-| `report/` | Report source (HTML) and PDF |
+| `report/` | Report source (LaTeX, `report.tex` + `figures/`) and final PDF |
 
 All three programs share the same interface:
 

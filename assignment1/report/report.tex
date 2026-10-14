@@ -234,6 +234,7 @@ bit-identical results.
 
 % =================================================
 \chapter{Methodology}
+\label{chap:method}
 % =================================================
 
 \section{Implementations}
@@ -303,6 +304,10 @@ computation, and allows checking that every repetition in every language produce
   allocation). Costly configurations, defined as those whose predicted time (median of the previous size multiplied by
   $(n/n_{\text{prev}})^3$) exceeds 20~s, use 3 repetitions and 0 warm-ups (1 for Java), to keep the study feasible.
   For runs of minutes, the JIT compiles the loop during the first fraction of a second, so its effect is negligible.
+  \item \textbf{Very short configurations.} The shortest multiplication (C, $n = 64$) takes about 78~$\mu$s, which is
+  several hundred times longer than the sub-microsecond resolution of the monotonic timers used. Each multiplication is
+  therefore timed individually instead of in batches; the IQR of the $n = 64$ configurations, below 3\% of the median
+  in the three languages, confirms that the timer resolution does not limit these measurements.
   \item \textbf{CPU affinity and priority.} The processor is hybrid, and a probe that runs the same CPU-bound loop
   pinned to each logical processor (\texttt{core\_probe.py}, \Cref{sec:hybrid}) shows that the efficient cores are
   about 2--2.6 times slower than the performance cores. A preliminary run without affinity showed repetitions up to
@@ -313,9 +318,12 @@ computation, and allows checking that every repetition in every language produce
   \item \textbf{Budgets.} Maximum time of one multiplication: 300~s. Memory budget: 4~GiB per process. A configuration
   that exceeds a limit is stopped and recorded as a timeout or memory failure, and the larger sizes of that language
   are not attempted. No time is invented for failed configurations.
-  \item \textbf{Summary statistics.} All raw measurements are kept in \texttt{raw\_measurements.csv}. Tables report the
-  median, the first and third quartiles ($Q_1$, $Q_3$) and the interquartile range (IQR), computed with linear
-  interpolation.
+  \item \textbf{Summary statistics.} All raw measurements are kept in \texttt{raw\_measurements.csv}, where every row is
+  labelled with the language, the matrix size $n$, the numeric type (\texttt{float64}), the kind of run (warm-up or
+  measured) and the repetition index. Every run used one thread pinned to logical processor~12; this is recorded in
+  \texttt{environment.json} and in the \texttt{threads} and \texttt{cpu\_affinity} columns of \texttt{summary.csv}.
+  Tables report the median, the first and third quartiles ($Q_1$, $Q_3$) and the interquartile range (IQR), computed
+  with linear interpolation.
   \item \textbf{Memory metric.} Peak working set (peak resident memory) of the whole process, read with the Win32
   \texttt{GetProcessMemoryInfo} API after the process has finished. It includes the inputs, the result, temporary
   objects and the language runtime (interpreter or JVM), so it is not a measure of the matrix storage alone. To avoid
@@ -396,6 +404,15 @@ A first complete run without affinity (kept in \texttt{results/preliminary\_run\
 same configuration that differed by factors of up to 6.6 (Python, $n = 512$) and 3.8 (C, $n = 2048$), and its medians
 were clearly higher: for $n = 1024$, 150.1~s (Python), 2.85~s (Java) and 6.32~s (C), against 72.8~s, 1.19~s and 2.37~s
 when the process was pinned to a performance core. These preliminary values are not used in the rest of the report.
+
+After the preliminary run, and before the final run, three changes were made to the protocol, all of which are
+reflected in \Cref{chap:method}: (1)~every process was pinned to a performance core with high priority; (2)~because the
+JVM then detects a single processor, its garbage collector was fixed explicitly to the serial collector instead of the
+default G1 collector; and (3)~the threshold that defines a costly configuration was lowered from 60~s to 20~s. The last
+change was needed because Java with $n = 2048$ took between 153 and 242~s per multiplication in the preliminary run,
+far more than the 23~s predicted by the cubic model from $n = 1024$, so its eight runs (three warm-ups and five
+repetitions) were not feasible within the time budget. The final run was then executed once, completely, with the
+protocol of \Cref{chap:method}; no configuration was repeated or selected afterwards.
 
 \section{Execution time}
 

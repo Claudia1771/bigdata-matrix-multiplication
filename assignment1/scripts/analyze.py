@@ -10,6 +10,8 @@ Outputs: results/summary.csv            median, quartiles, IQR, min, max, peak m
          results/pinned_vs_unpinned.csv comparison with the preliminary run without CPU affinity
 Quartiles use numpy.percentile with linear interpolation.
 """
+import json
+
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -175,6 +177,11 @@ def main():
     raw = pd.read_csv(RESULTS / "raw_measurements.csv")
     mem = pd.read_csv(RESULTS / "memory.csv")
     summary = summarise(raw, mem)
+    # Execution configuration of the run: every implementation is single-threaded and pinned (see environment.json)
+    with open(RESULTS / "environment.json", encoding="utf-8") as f:
+        env = json.load(f)
+    summary["threads"] = 1
+    summary["cpu_affinity"] = " ".join(map(str, env.get("cpu_affinity", [])))
     fits = fit_exponents(summary)
     summary.to_csv(RESULTS / "summary.csv", index=False, float_format="%.6g")
     fits.to_csv(RESULTS / "fit.csv", index=False, float_format="%.6g")

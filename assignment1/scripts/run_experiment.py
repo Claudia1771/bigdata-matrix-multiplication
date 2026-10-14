@@ -150,7 +150,8 @@ def main():
             for i, (kind, seconds, checksum) in enumerate(measurements):
                 raw_rows.append({"language": lang, "n": n, "dtype": config["dtype"], "kind": kind,
                                  "index": i if kind == "warmup" else i - warmups,
-                                 "time_s": seconds, "checksum_bits": checksum})
+                                 "time_s": seconds, "checksum_bits": checksum, "threads": 1,
+                                 "cpu_affinity": " ".join(map(str, config["cpu_affinity"]))})
             mem_rows.append({"language": lang, "n": n, "status": status, "warmups": warmups,
                              "reps": sum(1 for m in measurements if m[0] == "rep"),
                              "peak_working_set_mb": f"{peak:.1f}" if peak else ""})

@@ -126,7 +126,24 @@
 \newpage
 \pagenumbering{arabic}
 
-%ABSTRACT%
+% =================================================
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+% =================================================
+
+This study measures how the matrix size $n$ affects the execution time and memory use of the same basic
+$i$-$j$-$k$ triple-loop matrix multiplication implemented in Python, Java and C. The three programs read identical
+\texttt{float64} input matrices, produce bit-identical results, and were run with a documented protocol: shared inputs,
+correctness tests, warm-up runs, five repetitions (three for runs of more than 20~s), median and interquartile range,
+a 300~s time limit, and every process pinned to one performance core of a hybrid laptop processor. For
+$n = 1024$ the median time of one multiplication was 72.8~s in Python, 1.19~s in Java and 2.37~s in C; Python could not
+complete $n = 2048$ within the time limit, while Java and C needed 69.7~s and 32.2~s. The growth follows the cubic model
+only while the data fits in the caches: for larger sizes the cost per multiply-add increases, and the fitted exponents
+over $n = 256$--$2048$ are between 3.4 and 4.1. The contiguous C layout suffers a strong power-of-two effect
+(going from $n = 1000$ to $1024$ multiplies its time by 3.6, against an expected 1.07), which the Java and Python layouts
+do not show. A preliminary run without CPU affinity was up to 2.7 times slower and much more variable, showing that the
+core assignment of a hybrid processor must be controlled. These conclusions are limited to the tested implementations,
+settings and machine.
 
 % =================================================
 \chapter{Introduction and Objective}
@@ -287,8 +304,8 @@ computation, and allows checking that every repetition in every language produce
   For runs of minutes, the JIT compiles the loop during the first fraction of a second, so its effect is negligible.
   \item \textbf{CPU affinity and priority.} The processor is hybrid, and a probe that runs the same CPU-bound loop
   pinned to each logical processor (\texttt{core\_probe.py}, \Cref{sec:hybrid}) shows that the efficient cores are
-  about 2--2.7 times slower than the performance cores. A preliminary run without affinity showed repetitions up to
-  3.4 times slower than others of the same configuration. Therefore, every benchmark process is created already pinned
+  about 2--2.6 times slower than the performance cores. A preliminary run without affinity showed repetitions up to
+  6.6 times slower than others of the same configuration. Therefore, every benchmark process is created already pinned
   to logical processor~12 (a performance core) with \texttt{HIGH} priority class. Because the JVM detects a single
   available processor, the garbage collector is fixed explicitly to the serial collector (\texttt{-XX:+UseSerialGC}),
   and JIT compilation shares the same core as the measured thread.
@@ -312,7 +329,7 @@ computation, and allows checking that every repetition in every language produce
 \small
 \caption{Hardware and software environment of the reported run.}
 \label{tab:env}
-\begin{tabular}{ll}
+\begin{tabular}{lp{10.5cm}}
 \toprule
 \textbf{Item} & \textbf{Value} \\
 \midrule
@@ -332,6 +349,375 @@ CPU affinity & Logical processor 12 (performance core), \texttt{HIGH} priority c
 The whole configuration is stored in \texttt{config.json} and the environment captured at run time in
 \texttt{environment.json}.
 
-%RESULTS%
+% =================================================
+\chapter{Results}
+% =================================================
+
+All the numbers in this chapter come from \texttt{results/raw\_measurements.csv}, \texttt{memory.csv} and
+\texttt{summary.csv}, produced by \texttt{analyze.py}. Following common recommendations for reporting performance
+measurements~\cite{hoefler2015}, the median is used as the central value and the interquartile range (IQR) as the
+measure of variability.
+
+\section{Correctness}
+
+All 30 tests (10 cases $\times$ 3 languages) passed. The exact cases (known $1\times1$ and $2\times2$ products, identity
+and zero matrix) gave exactly the expected values. For the random cases, the maximum absolute difference with respect
+to \texttt{numpy.matmul} grew with $n$, as expected from the error bound, up to $2.1 \times 10^{-14}$ for $n = 100$, well
+inside the tolerance of $10^{-12}$. The outputs of Python, Java and C were bit-identical in every test, and during the
+benchmark every repetition of every language produced the same checksum for each size. Therefore the three programs
+perform exactly the same floating-point operations in the same order, and the comparison is not affected by different
+arithmetic. The GCC vectorisation report (\texttt{-fopt-info-vec}) confirms that the C loop was not vectorised; the
+generated code uses scalar \texttt{mulsd} and \texttt{addsd} instructions.
+
+\section{Hybrid processor and CPU affinity}
+\label{sec:hybrid}
+
+\Cref{tab:probe} summarises \texttt{core\_probe.csv}: the same CPU-bound loop takes about 0.22--0.24~s on the 12
+logical processors of the performance cores and 0.45--0.58~s on the efficient and low-power cores.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Speed of the logical processors (median of 3 runs of the same Python loop pinned to each processor).}
+\label{tab:probe}
+\begin{tabular}{llr}
+\toprule
+\textbf{Logical processors} & \textbf{Core type} & \textbf{Median time (s)} \\
+\midrule
+0, 1, 10--19 & Performance cores (6 cores, 2 threads each) & 0.220--0.236 \\
+2--9 & Efficient cores & 0.447--0.534 \\
+20, 21 & Low-power efficient cores & 0.571--0.577 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A first complete run without affinity (kept in \texttt{results/preliminary\_run\_unpinned}) produced repetitions of the
+same configuration that differed by factors of up to 6.6 (Python, $n = 512$) and 3.8 (C, $n = 2048$), and its medians
+were clearly higher: for $n = 1024$, 150.1~s (Python), 2.85~s (Java) and 6.32~s (C), against 72.8~s, 1.19~s and 2.37~s
+when the process was pinned to a performance core. These preliminary values are not used in the rest of the report.
+
+\section{Execution time}
+
+\Cref{tab:time} reports the median time of one multiplication and its quartiles, and \Cref{fig:time} plots them.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Execution time of one multiplication: median and interquartile range [$Q_1$, $Q_3$] in seconds, and number of
+measured repetitions $r$. All processes pinned to a performance core.}
+\label{tab:time}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{r ll ll ll}
+\toprule
+ & \multicolumn{2}{c}{\textbf{Python}} & \multicolumn{2}{c}{\textbf{Java}} & \multicolumn{2}{c}{\textbf{C}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+$n$ & median [$Q_1$, $Q_3$] & $r$ & median [$Q_1$, $Q_3$] & $r$ & median [$Q_1$, $Q_3$] & $r$ \\
+\midrule
+64   & 0.00906 [0.00904, 0.00907] & 5 & 0.000113 [0.000112, 0.000114] & 5 & 0.0000777 [0.0000774, 0.0000786] & 5 \\
+128  & 0.0689 [0.0689, 0.0694] & 5 & 0.00105 [0.00099, 0.00108] & 5 & 0.00179 [0.00176, 0.00188] & 5 \\
+256  & 0.604 [0.603, 0.604] & 5 & 0.00984 [0.00972, 0.00987] & 5 & 0.0137 [0.0137, 0.0159] & 5 \\
+512  & 10.60 [9.73, 11.31] & 5 & 0.111 [0.111, 0.112] & 5 & 0.152 [0.151, 0.152] & 5 \\
+1000 & 71.31 [69.45, 82.17] & 3 & 1.129 [1.020, 1.243] & 5 & 0.659 [0.638, 0.889] & 5 \\
+1024 & 72.80 [72.22, 72.89] & 3 & 1.194 [1.147, 1.229] & 5 & 2.373 [2.215, 2.944] & 5 \\
+2048 & timeout ($>$ 300 s) & 0 & 69.73 [63.73, 69.99] & 5 & 32.18 [31.48, 32.34] & 5 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{fig1_time_vs_n.png}
+\caption{Median execution time of one multiplication versus $n$ (log--log scale; bars show the IQR). The dashed line
+has slope 3 (cubic growth). The point just to the left of 1024 is $n = 1000$. The cross marks the Python timeout.}
+\label{fig:time}
+\end{figure}
+
+\Cref{tab:growth} compares the observed growth between consecutive sizes with the growth predicted by the cubic model,
+and shows the cost per inner-loop iteration (median time divided by $n^3$), which would be constant if the time grew
+exactly as $n^3$. \Cref{fig:perop} plots this normalised cost.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Observed time ratio between consecutive sizes (cubic model in brackets), time per multiply-add in
+nanoseconds, and time relative to C for the same $n$.}
+\label{tab:growth}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{r c ccc ccc cc}
+\toprule
+ & & \multicolumn{3}{c}{\textbf{Ratio to previous size}} & \multicolumn{3}{c}{\textbf{ns per multiply-add}} & \multicolumn{2}{c}{\textbf{Time / C time}} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}\cmidrule(lr){9-10}
+$n$ & (cubic) & Python & Java & C & Python & Java & C & Python & Java \\
+\midrule
+64   & --       & --    & --    & --    & 34.5 & 0.43 & 0.30 & 116.5 & 1.46 \\
+128  & (8.00)   & 7.61  & 9.28  & 23.00 & 32.9 & 0.50 & 0.85 & 38.6  & 0.59 \\
+256  & (8.00)   & 8.75  & 9.38  & 7.66  & 36.0 & 0.59 & 0.82 & 44.1  & 0.72 \\
+512  & (8.00)   & 17.57 & 11.32 & 11.09 & 79.0 & 0.83 & 1.13 & 69.8  & 0.73 \\
+1000 & (7.45)   & 6.73  & 10.13 & 4.34  & 71.3 & 1.13 & 0.66 & 108.2 & 1.71 \\
+1024 & (1.07)   & 1.02  & 1.06  & 3.60  & 67.8 & 1.11 & 2.21 & 30.7  & 0.50 \\
+2048 & (8.00)   & --    & 58.41 & 13.56 & --   & 8.12 & 3.75 & --    & 2.17 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{fig2_time_per_op.png}
+\caption{Median time divided by $n^3$ (nanoseconds per multiply-add). A horizontal line would mean exactly cubic growth.}
+\label{fig:perop}
+\end{figure}
+
+A least-squares fit of $\log t = \log a + b \log n$ over $n \geq 256$ gives exponents $b = 3.42$ for Python
+($n = 256$--$1024$), $4.11$ for Java and $3.64$ for C ($n = 256$--$2048$), all above the theoretical value of 3.
+
+\section{Variability}
+
+\Cref{fig:disp} shows every measured repetition divided by the median of its configuration. For 14 of the 20 completed
+configurations the IQR is below 10\% of the median. The largest relative IQRs are C at $n = 1000$ (38\%), $n = 1024$
+(31\%) and $n = 256$ (16\%), Java at $n = 1000$ (20\%), and Python at $n = 1000$ (18\%) and $n = 512$ (15\%). One Java repetition at
+$n = 128$ took 3.1 times its median; it is kept in the data, and the median is not affected by it.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{fig4_dispersion.png}
+\caption{Each measured repetition divided by the median of its configuration.}
+\label{fig:disp}
+\end{figure}
+
+\section{Memory}
+
+\Cref{tab:mem} and \Cref{fig:mem} report the peak working set of each process. For reference, three $n \times n$
+\texttt{float64} matrices occupy 0.09~MiB for $n = 64$, 6~MiB for $n = 512$, 24~MiB for $n = 1024$ and 96~MiB for
+$n = 2048$.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Peak working set of the process (MiB), including the language runtime. The Python value for $n = 2048$
+corresponds to the run stopped by the time limit.}
+\label{tab:mem}
+\begin{tabular}{rrrrr}
+\toprule
+$n$ & \textbf{Python} & \textbf{Java} & \textbf{C} & \textbf{Estimate $24n^2$ bytes} \\
+\midrule
+64   & 12.1  & 42.1  & 4.3  & 0.1 \\
+128  & 14.2  & 43.4  & 4.7  & 0.4 \\
+256  & 22.5  & 47.6  & 5.6  & 1.5 \\
+512  & 51.9  & 66.6  & 9.9  & 6.0 \\
+1000 & 166.4 & 133.3 & 26.8 & 22.9 \\
+1024 & 173.1 & 131.8 & 27.9 & 24.0 \\
+2048 & 431.2 (timeout) & 319.8 & 99.9 & 96.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{fig3_memory.png}
+\caption{Peak working set of the process versus $n$, with the storage estimate of three \texttt{float64} matrices.}
+\label{fig:mem}
+\end{figure}
+
+\section{Limits}
+
+No configuration exceeded the memory budget of 4~GiB; the largest peak was 431~MiB. The largest feasible tested size
+was $n = 1024$ for Python and $n = 2048$ for Java and C. The largest attempted size was $n = 2048$ for all three
+languages: the first Python multiplication with $n = 2048$ did not finish within the limit of 300~s and the process was
+stopped, so no time is reported for it.
+
+% =================================================
+\chapter{Discussion}
+% =================================================
+
+\section{Does the time grow as \texorpdfstring{$n^3$}{n3}? (H1)}
+
+Only partially. For small sizes the observed ratios are close to the cubic prediction of 8: Python from 64 to 256
+(7.6 and 8.8), Java from 64 to 256 (9.3 and 9.4) and C from 128 to 256 (7.7). For larger sizes the time grows faster
+than $n^3$: the cost per multiply-add increases (\Cref{fig:perop}) and the fitted exponents are between 3.4 and 4.1.
+The algorithm still performs exactly $n^3$ multiply-adds, so the extra cost comes from the memory system, not from more
+arithmetic.
+
+This behaviour is consistent with the size of the working data relative to the caches. The innermost loop walks down a
+column of $B$, so it touches one element of every row of $B$; while all of $B$ fits in a cache, these accesses are
+relatively cheap. $B$ alone occupies 2~MiB for $n = 512$ (the size of the L2 cache of one performance core), 8~MiB
+for $n = 1024$ (still inside the 24~MB L3 cache) and 32~MiB for $n = 2048$, which no longer fits in L3. The sharpest
+increases appear exactly at these points: Java, whose cost per operation stays between 0.4 and 1.1~ns up to
+$n = 1024$, jumps to 8.1~ns at $n = 2048$ (a ratio of 58 instead of 8), and C goes from 2.2 to 3.7~ns. In addition,
+for $n = 2048$ each row of $B$ is 16~KiB long, so consecutive accesses of the inner loop always fall on different 4~KiB
+memory pages, which increases address-translation (TLB) misses~\cite{drepper2007}. These explanations agree with the
+data and with the literature~\cite{drepper2007,hennessy2017}, but hardware performance counters would be needed to
+confirm them; they were not measured in this study.
+
+\section{The power-of-two effect}
+
+The most striking result is the comparison between $n = 1000$ and $n = 1024$. The cubic model predicts that 1024
+should be only 7\% slower than 1000. Python (+2\%) and Java (+6\%) behave as predicted, but C becomes 3.6 times slower
+(0.66~s to 2.37~s). A similar anomaly appears between $n = 64$ and $n = 128$, where C becomes 23 times slower while
+Python and Java grow by about 8--9.
+
+The C matrix is one contiguous block, so the distance between $B_{kj}$ and $B_{k+1,j}$ is exactly $8n$ bytes. When $n$
+is a power of two, this stride is a power of two, and all the elements of a column fall into a few sets of the
+set-associative cache, which evict each other even though the cache has plenty of free space (conflict
+misses)~\cite{drepper2007,lam1991}. In Java, each row is a separate object with a header, so the distance between rows
+is not exactly a power of two, and in Python the elements are pointers to objects scattered in the heap; neither layout
+produces this regular pattern, which explains why they are not affected. The fact that C at $n = 1000$ is the fastest
+of the three languages, and that it becomes the slowest at $n = 1024$, shows that the storage layout can matter as much
+as the language itself.
+
+\section{Python versus compiled languages (H2)}
+
+Supported. Python is between 31 and 117 times slower than C and about 61 times slower than Java for $n = 1024$, in the
+range of one to two orders of magnitude. Its cost of 33--36~ns per multiply-add for small sizes, compared with less
+than 1~ns in Java and C, reflects the work of the interpreter for every iteration: reading bytecode, looking up the
+types of the operands, creating a new \texttt{float} object for every intermediate result and updating reference
+counts. This interpretation overhead dominates so strongly that Python does not show the power-of-two effect at all.
+Its cost per operation roughly doubles from $n = 512$ onwards, when its matrices (about 32 bytes per element including
+the float objects) no longer fit in the private caches. With a growth ratio of 8, a multiplication with $n = 2048$ would
+need roughly 580~s, consistent with the observed timeout, although this value is a prediction, not a measurement.
+
+\section{Java versus C (H3)}
+
+Supported for $n \leq 1024$, where Java needs between 0.50 and 1.71 times the time of C, but not for $n = 2048$, where
+Java is 2.2 times slower. Java was even faster than C for $n = 128$ to $512$ and $n = 1024$. For $n = 128$ and $1024$ this
+is explained by the power-of-two effect on the C layout. For $n = 256$ and $512$, where C is about 1.4 times slower, the
+reason is not established by this study: both programs execute a scalar loop with the same operations, but the machine
+code generated by the HotSpot JIT compiler was not inspected, so differences in instruction scheduling, unrolling or
+bounds-check elimination remain possible explanations. At $n = 2048$, every access to \texttt{B[k][j]} in Java first
+needs the reference to row \texttt{k}, and the rows of $B$ are separate objects; when $B$ no longer fits in L3, these
+extra dependent memory accesses may explain why Java degrades more than C, but again this was not measured directly.
+
+\section{Memory (H4)}
+
+Supported. For large sizes the peak working set grows approximately as $n^2$. C is very close to the storage estimate:
+its baseline is about 4~MiB, and at $n = 1024$ and $2048$ it uses 27.9 and 99.9~MiB against 24 and 96~MiB of data. The
+JVM needs about 42~MiB even for the smallest matrices, and at $n = 2048$ it reaches 320~MiB, more than three times the
+data. Part of this is the heap of a garbage-collected runtime: every repetition allocates a new result matrix, and the
+previous ones are released only when the collector runs; the input files are also read into temporary byte arrays.
+Python uses about 6--7 times the size of the data at $n = 1024$, because each element is an 8-byte pointer to a separate
+24-byte \texttt{float} object instead of an 8-byte value. The metric includes the whole process, so the comparison
+mixes data and runtime overhead; it should not be read as the size of the matrices alone.
+
+\section{Variability and the hybrid processor}
+
+The preliminary run without affinity shows that, on a hybrid processor, the operating system can move a
+single-threaded benchmark between core types with very different speeds. This made some medians more than twice as high
+and some repetitions several times slower than others, which would have led to wrong conclusions (for example, Java
+$n = 2048$ exceeded the time limit in that run). Pinning every process to a performance core removed most of this
+variability: 14 of 20 configurations have an IQR below 10\%. The remaining variability is concentrated in the sizes
+where the caches are under the most pressure ($n = 512$ to $1024$), which suggests interference from other processes
+that share the L3 cache and memory bandwidth, and changes of the clock frequency under the \textit{Balanced} power plan.
+
+\section{Limitations}
+
+\begin{itemize}
+  \item A single laptop was used, with the \textit{Balanced} power plan and normal background activity (including cloud
+  synchronisation). Clock frequency and other processes could not be fully controlled.
+  \item Each process was pinned to one logical processor, but the other hardware thread of the same core was not
+  reserved, and no hardware performance counters (cache misses, TLB misses) were collected. The explanations based on
+  the memory hierarchy are therefore supported by the timing patterns, not by direct measurements.
+  \item Costly configurations used only three repetitions, so their IQR is less reliable.
+  \item The memory metric is the peak working set of the whole process; it does not separate matrix storage from
+  runtime overhead, and for Java it depends on when the garbage collector runs.
+  \item The JIT-compiled code of Java was not inspected, so the reason why Java is faster than C for some sizes is not
+  fully resolved.
+\end{itemize}
+
+% =================================================
+\chapter{Conclusions}
+% =================================================
+
+Within the tested implementations, settings and machine, this study establishes that:
+\begin{itemize}
+  \item The same triple loop, with identical inputs and bit-identical results, needs 72.8~s in Python, 1.19~s in Java
+  and 2.37~s in C for $n = 1024$. Python is one to two orders of magnitude slower than the compiled languages and could
+  not complete $n = 2048$ within 300~s.
+  \item The time follows the cubic model only while the data fits in the caches. Beyond that point the cost per
+  operation grows, and the fitted exponents over $n = 256$--$2048$ are 3.4--4.1.
+  \item The storage layout interacts strongly with the matrix size: the contiguous C layout is 3.6 times slower at
+  $n = 1024$ than at $n = 1000$, an effect that the Java and Python layouts do not show. Consequently, no language is
+  faster than another for every size: C was the fastest at $n = 64$, $1000$ and $2048$, and Java at $n = 128$--$512$
+  and $1024$.
+  \item Memory use grows as $n^2$; C stays close to the size of the data, while the JVM adds a fixed overhead and
+  heap growth, and Python needs several times the size of the data because of boxed numbers.
+  \item On a hybrid processor, controlling the CPU affinity is essential: without it, the results were up to 2.7 times
+  slower and much more variable.
+\end{itemize}
+
+What remains unresolved is the exact cause of the differences between Java and C at $n = 256$, $512$ and $2048$, which
+would require inspecting the generated machine code and collecting hardware counters. These results also motivate
+Assignment~2: the cache effects observed here suggest that loop reordering and blocking should reduce the cost per
+operation of the basic algorithm.
+
+% =================================================
+\chapter*{AI Usage Statement}
+\addcontentsline{toc}{chapter}{AI Usage Statement}
+% =================================================
+
+In accordance with the course policy, a generative AI assistant was used to support the planning of the experiment,
+the development and debugging of the benchmark scripts, and the language revision of this report. All the
+measurements were executed on the author's computer, and the author checked the code, the results and the references
+and is responsible for the conclusions.
+
+% =================================================
+\chapter*{Reproducibility Materials}
+\addcontentsline{toc}{chapter}{Reproducibility Materials}
+% =================================================
+
+All materials are in the folder \texttt{assignment1} of the repository
+\url{https://github.com/Claudia1771/bigdata-matrix-multiplication}:
+\begin{itemize}
+  \item \texttt{src/}: the Python, Java and C implementations.
+  \item \texttt{config.json}: seed, sizes, repetitions, warm-ups, budgets, compiler and JVM flags, CPU affinity and
+  tolerances.
+  \item \texttt{scripts/}: \texttt{generate\_inputs.py}, \texttt{verify.py}, \texttt{core\_probe.py},
+  \texttt{run\_experiment.py} and \texttt{analyze.py}.
+  \item \texttt{data/manifest.csv}: seeds and SHA-256 hashes of the input files (the binary inputs are regenerated by
+  \texttt{generate\_inputs.py}).
+  \item \texttt{results/}: raw measurements, memory, correctness tests, environment, summaries, figures and the
+  preliminary run without affinity.
+  \item \texttt{README.md}: exact build and run commands and dependency versions.
+\end{itemize}
+
+% =================================================
+% REFERENCES
+% =================================================
+\begin{thebibliography}{99}
+\addcontentsline{toc}{chapter}{References}
+
+\bibitem{golub2013} G.~H. Golub and C.~F. Van~Loan, \textit{Matrix Computations}, 4th~ed. Baltimore, MD, USA: Johns
+Hopkins Univ. Press, 2013.
+
+\bibitem{leiserson2020} C.~E. Leiserson, N.~C. Thompson, J.~S. Emer, B.~C. Kuszmaul, B.~W. Lampson, D.~Sanchez, and
+T.~B. Schardl, ``There's plenty of room at the Top: What will drive computer performance after Moore's law?,''
+\textit{Science}, vol.~368, no.~6495, Art.~no.~eaam9744, 2020.
+
+\bibitem{drepper2007} U.~Drepper, ``What every programmer should know about memory,'' Red Hat, Inc., Tech. Rep.,
+Nov.~2007.
+
+\bibitem{hennessy2017} J.~L. Hennessy and D.~A. Patterson, \textit{Computer Architecture: A Quantitative Approach},
+6th~ed. Cambridge, MA, USA: Morgan Kaufmann, 2017.
+
+\bibitem{lam1991} M.~S. Lam, E.~E. Rothberg, and M.~E. Wolf, ``The cache performance and optimizations of blocked
+algorithms,'' in \textit{Proc. 4th Int. Conf. Architectural Support for Programming Languages and Operating Systems
+(ASPLOS-IV)}, 1991, pp.~63--74.
+
+\bibitem{goto2008} K.~Goto and R.~A. van~de~Geijn, ``Anatomy of high-performance matrix multiplication,''
+\textit{ACM Trans. Math. Softw.}, vol.~34, no.~3, Art.~no.~12, 2008.
+
+\bibitem{georges2007} A.~Georges, D.~Buytaert, and L.~Eeckhout, ``Statistically rigorous Java performance
+evaluation,'' in \textit{Proc. 22nd ACM SIGPLAN Conf. Object-Oriented Programming Systems, Languages and Applications
+(OOPSLA)}, 2007, pp.~57--76.
+
+\bibitem{hoefler2015} T.~Hoefler and R.~Belli, ``Scientific benchmarking of parallel computing systems: Twelve ways to
+tell the masses when reporting performance results,'' in \textit{Proc. Int. Conf. High Performance Computing,
+Networking, Storage and Analysis (SC15)}, 2015, Art.~no.~73.
+
+\bibitem{higham2002} N.~J. Higham, \textit{Accuracy and Stability of Numerical Algorithms}, 2nd~ed. Philadelphia, PA,
+USA: SIAM, 2002.
+
+\bibitem{jep306} J.~D. Darcy, ``JEP 306: Restore always-strict floating-point semantics,'' OpenJDK, 2021. [Online].
+Available: \url{https://openjdk.org/jeps/306}
+
+\end{thebibliography}
 
 \end{document}

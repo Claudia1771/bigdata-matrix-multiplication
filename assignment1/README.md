@@ -1,9 +1,9 @@
-# Assignment 1 – Basic Matrix Multiplication in Python, Java and C
+﻿# Assignment 1 – Basic Matrix Multiplication in Python, Java and C
 
 Research question: *How does the matrix size n affect the execution time and the memory use of the same
 basic triple-loop matrix multiplication implemented in Python, Java and C?*
 
-The report is [`report/Assignment01_Report.pdf`](report/Assignment01_Report.pdf).
+The report is [`report/Assignment01_AlvarezGonzalez_Report.pdf`](report/Assignment01_AlvarezGonzalez_Report.pdf).
 
 ## Contents
 

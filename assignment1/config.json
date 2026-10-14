@@ -1,0 +1,19 @@
+{
+  "seed": 42,
+  "generator": "numpy.random.default_rng (PCG64), uniform values in [0, 1)",
+  "dtype": "float64",
+  "sizes": [64, 128, 256, 512, 1000, 1024, 2048],
+  "correctness_sizes": [1, 2, 3, 17, 64, 100],
+  "reps": 5,
+  "reps_costly": 3,
+  "costly_threshold_s": 20,
+  "warmups": {"Python": 1, "Java": 3, "C": 1},
+  "warmups_costly": {"Python": 0, "Java": 1, "C": 0},
+  "time_limit_s": 300,
+  "memory_budget_mb": 4096,
+  "c_flags": ["-O2", "-std=c11"],
+  "java_flags": ["-Xmx4g", "-XX:+UseSerialGC"],
+  "cpu_affinity": [12],
+  "priority": "high",
+  "tolerance": {"rtol": 1e-12, "atol": 1e-12}
+}

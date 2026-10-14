@@ -1,0 +1,7 @@
+**/build/
+**/data/*.bin
+__pycache__/
+*.class
+*.exe
+.idea/
+*.iml

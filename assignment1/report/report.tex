@@ -1,0 +1,337 @@
+\documentclass[12pt,a4paper]{report}
+
+% -------------------------------------------------
+% PACKAGES
+% -------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[english]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\captionsetup{font=small, labelfont=bf}
+\captionsetup[figure]{position=bottom}
+\captionsetup[table]{position=top}
+\usepackage{subcaption}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{tocloft}
+\usepackage{hyperref}
+\usepackage[nameinlink, noabbrev]{cleveref}
+
+% -------------------------------------------------
+% PAGE FORMAT
+% -------------------------------------------------
+\geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
+\setstretch{1.2}
+\setlength{\parskip}{6pt}
+\setlength{\parindent}{0pt}
+\raggedbottom
+\setlength{\emergencystretch}{3em}
+\sloppy
+\setlist[itemize]{noitemsep, topsep=3pt}
+\setlist[enumerate]{noitemsep, topsep=3pt}
+\graphicspath{{figures/}}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=cyan,
+  citecolor=blue
+}
+
+% Algorithms
+\makeatletter
+\setlength{\ALG@thistlm}{\leftmargin}
+\makeatother
+
+% -------------------------------------------------
+% TITLE FORMAT
+% -------------------------------------------------
+\titleformat{\chapter}[hang]
+  {\normalfont\huge\bfseries}
+  {\thechapter.}{1em}{}
+\titlespacing*{\chapter}{0pt}{-10pt}{10pt}
+
+\titleformat{\section}
+  {\normalfont\bfseries\large}{\thesection.}{0.5em}{}
+
+\titleformat{\subsection}
+  {\normalfont\bfseries\normalsize}{\thesubsection.}{0.5em}{}
+
+% -------------------------------------------------
+% TABLE OF CONTENTS
+% -------------------------------------------------
+\renewcommand{\cftbeforetoctitleskip}{-1em}
+\renewcommand{\cftaftertoctitleskip}{1em}
+\setlength{\cftchapindent}{0pt}
+\setlength{\cftsecindent}{1.5em}
+\setlength{\cftsubsecindent}{3em}
+\setlength{\cftsubsubsecindent}{4.5em}
+\renewcommand{\cftdotsep}{1}
+
+\begin{document}
+
+% -------------------------------------------------
+% COVER PAGE
+% -------------------------------------------------
+\begin{titlepage}
+    \centering
+    \includegraphics[width=0.35\textwidth]{logo_ulpgc.png} \\[0.8cm]
+
+    {\huge \textbf{Big Data}} \\[0.3cm]
+    {\Large Degree in Data Science and Engineering} \\[0.2cm]
+    {\large School of Computer Engineering} \\[0.2cm]
+    {\large Academic year 2026--2027} \\[1cm]
+
+    \line(1,0){400} \\[4mm]
+    {\Huge \textbf{Individual Assignment 1}} \\[3mm]
+    {\LARGE Basic Matrix Multiplication in Python, Java and C} \\[3mm]
+    {\large \textit{How matrix size affects the runtime and memory use\\of a basic triple-loop matrix multiplication}} \\[4mm]
+    \line(1,0){400} \\[1cm]
+
+    {\large
+    \begin{tabular}{l}
+        \textbf{Name} \\
+        \midrule
+        Claudia Álvarez González \\
+    \end{tabular}} \\[1cm]
+
+    {\large \textbf{Repository:} \url{https://github.com/Claudia1771/bigdata-matrix-multiplication}} \\[2mm]
+    {\normalsize (folder \texttt{assignment1})}
+
+    \vfill
+
+    {\large \today}
+\end{titlepage}
+
+% -------------------------------------------------
+% INDEXES
+% -------------------------------------------------
+\pagenumbering{roman}
+\tableofcontents
+\newpage
+\listoffigures
+\newpage
+\listoftables
+\newpage
+\listofalgorithms
+\newpage
+\pagenumbering{arabic}
+
+%ABSTRACT%
+
+% =================================================
+\chapter{Introduction and Objective}
+% =================================================
+
+Dense matrix multiplication is a basic building block of scientific computing, computer graphics and machine
+learning. For two $n \times n$ matrices the straightforward algorithm performs $n^3$ multiply-add operations, so its
+cost grows cubically with the matrix side $n$. Asymptotic complexity, however, says nothing about the constant
+factors that determine the actual running time on a given machine. These depend on how the language executes the code
+(interpretation, just-in-time or ahead-of-time compilation), how the matrices are stored in memory and how the
+algorithm interacts with the memory hierarchy~\cite{leiserson2020,drepper2007}.
+
+\section{Research question}
+
+\textit{How does the matrix size $n$ affect the execution time and the memory use of the same basic triple-loop
+matrix multiplication implemented in Python, Java and C, under fixed and documented execution conditions?}
+
+The factors changed are the matrix size $n$ (the side of an $n \times n$ square matrix) and the implementation
+language. The outcomes measured are the execution time of one multiplication and the peak memory of the process.
+
+\section{Hypotheses}
+
+The following predictions were stated before running the experiment:
+\begin{enumerate}[label=\textbf{H\arabic*.}]
+  \item For each language the execution time grows approximately as $n^3$, so doubling $n$ multiplies the time by about 8.
+  \item Python is one to two orders of magnitude slower than Java and C, because the interpreter executes every operation on boxed objects.
+  \item Java and C are within a small factor of each other once the JIT compiler has optimised the loop.
+  \item Memory grows as $n^2$, with a fixed runtime overhead that is largest for Java and a per-element overhead that is largest for Python.
+\end{enumerate}
+
+% =================================================
+\chapter{Background}
+% =================================================
+
+\section{The basic algorithm}
+
+Given $A$ and $B$, each element of $C = AB$ is $C_{ij} = \sum_{k=1}^{n} A_{ik} B_{kj}$~\cite{golub2013}.
+\Cref{alg:triple} shows the classic $i$-$j$-$k$ triple loop used in this study. It performs exactly $n^3$
+multiplications and $n^3$ additions.
+
+\begin{algorithm}[H]
+\caption{Basic $i$-$j$-$k$ matrix multiplication}
+\label{alg:triple}
+\begin{algorithmic}[1]
+\Require $A, B \in \mathbb{R}^{n \times n}$
+\Ensure $C = AB$
+\State allocate $C \in \mathbb{R}^{n \times n}$
+\For{$i \gets 1$ \textbf{to} $n$}
+  \For{$j \gets 1$ \textbf{to} $n$}
+    \State $s \gets 0$
+    \For{$k \gets 1$ \textbf{to} $n$}
+      \State $s \gets s + A_{ik} \cdot B_{kj}$
+    \EndFor
+    \State $C_{ij} \gets s$
+  \EndFor
+\EndFor
+\State \Return $C$
+\end{algorithmic}
+\end{algorithm}
+
+\section{Memory access pattern}
+
+In the $i$-$j$-$k$ order the innermost loop reads one row of $A$ sequentially and one column of $B$ with a stride of
+$n$ elements. With row-major storage, each access to $B$ touches a different cache line, so for large $n$ most
+accesses to $B$ miss in the cache~\cite{drepper2007,hennessy2017,lam1991}. When the row length is a power of two, the
+elements of a column map to a small number of cache sets and can evict each other (conflict
+misses)~\cite{drepper2007,lam1991}. Optimised libraries avoid these effects with blocking and
+vectorisation~\cite{goto2008}; they are outside the scope of this controlled comparison and will be studied in
+Assignment~2.
+
+\section{Execution models}
+
+CPython interprets bytecode; every \texttt{float} is a heap object, and every arithmetic operation involves dynamic
+type dispatch and reference counting. Java code is first interpreted and then compiled at run time by the HotSpot JIT
+compiler, which is why warm-up runs are recommended before measuring~\cite{georges2007}. C is compiled ahead of time
+to native code. Leiserson et al.~\cite{leiserson2020} used this same triple loop to show differences of several orders
+of magnitude between Python and C.
+
+\section{Floating-point arithmetic}
+
+Floating-point addition is not associative, so a different summation order can change the last bits of a result. For
+an inner product of length $n$, the error with respect to the exact value is bounded by about
+$n u \sum_k |A_{ik} B_{kj}|$, where $u \approx 1.1 \times 10^{-16}$ is the unit roundoff of
+\texttt{float64}~\cite{higham2002}. Since all three implementations perform the same operations in the same order,
+and Java uses strict IEEE~754 semantics by default since version~17~\cite{jep306}, they are expected to produce
+bit-identical results.
+
+% =================================================
+\chapter{Methodology}
+% =================================================
+
+\section{Implementations}
+
+The three programs implement \Cref{alg:triple} with a scalar accumulator, use 64-bit floating-point numbers and do not
+call any matrix library. They differ only in the unavoidable, idiomatic storage layout of each language
+(\Cref{tab:impl}). All implementations are single-threaded. The C program creates no additional threads; the JVM
+creates internal threads for JIT compilation and garbage collection, which in this study share the single core
+assigned to the process.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Implementations, storage layouts and fixed execution settings.}
+\label{tab:impl}
+\begin{tabular}{p{1.4cm}p{6.0cm}p{6.0cm}}
+\toprule
+\textbf{Language} & \textbf{Storage of each matrix} & \textbf{Execution settings (fixed for the whole study)} \\
+\midrule
+Python & List of $n$ lists of Python \texttt{float} objects (each element is a pointer to a 24-byte object) & CPython 3.13.0, default interpreter (experimental JIT not enabled) \\
+\addlinespace
+Java & \texttt{double[][]}: an array of $n$ independent row arrays of primitive doubles & JDK 21.0.5 HotSpot, default tiered JIT, serial collector, \texttt{-Xmx4g} \\
+\addlinespace
+C & One contiguous row-major \texttt{double} array of $n^2$ elements & GCC 16.2.0 (MinGW-w64), \texttt{-O2 -std=c11}, no \texttt{-march} flag \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Inputs}
+
+To guarantee that all languages multiply the same logical matrices, the inputs are generated once by
+\texttt{generate\_inputs.py} and read by the three programs. For each size, $A$ and $B$ are drawn with NumPy's
+\texttt{default\_rng} (PCG64) using seed $42 + n$, uniform values in $[0, 1)$, type \texttt{float64}, and stored as raw
+little-endian row-major binary files. A manifest records the seed and the SHA-256 hash of every file.
+
+The declared size sequence is $n \in \{64, 128, 256, 512, 1000, 1024, 2048\}$: powers of two, so that consecutive
+sizes should differ by a factor of 8 in time, plus $n = 1000$ next to $1024$ to check whether the power-of-two size
+has an effect of its own.
+
+\section{Correctness checks}
+
+Before benchmarking, \texttt{verify.py} runs every implementation on:
+\begin{itemize}
+  \item $1\times1$ and $2\times2$ matrices with known integer products (exact comparison);
+  \item $AI = A$ and $A\,0 = 0$ for a random $8\times8$ matrix $A$ (exact comparison);
+  \item random matrices with $n \in \{1, 2, 3, 17, 64, 100\}$, compared with \texttt{numpy.matmul} as the trusted
+  reference using $\mathrm{rtol} = \mathrm{atol} = 10^{-12}$.
+\end{itemize}
+This tolerance is about 100 times larger than the error bound $n u$ for $n = 100$ and values in $[0,1)$ (no
+cancellation is possible because all products are non-negative), but small enough to detect any indexing error. The
+outputs of the three languages are also compared with each other bit by bit.
+
+In addition, during the benchmark every multiplication returns a checksum: the sequential sum of all elements of $C$,
+reported as the raw bits of the double. This guarantees that the result is consumed, so the compiler cannot remove the
+computation, and allows checking that every repetition in every language produced the same result.
+
+\section{Measurement protocol}
+
+\begin{itemize}
+  \item \textbf{Timer boundary (kernel measurement).} The timer covers only the multiplication function, including the
+  allocation of the output matrix $C$ (an $O(n^2)$ cost, negligible compared with the $O(n^3)$ loop). Reading the
+  input files, process start-up and the checksum are outside the timed region. Monotonic timers are used:
+  \texttt{time.perf\_counter} (Python), \texttt{System.nanoTime} (Java) and \texttt{clock\_gettime(CLOCK\_MONOTONIC)} (C).
+  \item \textbf{Processes, warm-up and repetitions.} Each (language, $n$) configuration runs in a fresh process that
+  loads the inputs, executes the warm-up multiplications (not reported) and then the measured repetitions. Default:
+  5 measured repetitions, with 3 warm-ups for Java (JIT compilation) and 1 for Python and C (caches and memory
+  allocation). Costly configurations, defined as those whose predicted time (median of the previous size multiplied by
+  $(n/n_{\text{prev}})^3$) exceeds 20~s, use 3 repetitions and 0 warm-ups (1 for Java), to keep the study feasible.
+  For runs of minutes, the JIT compiles the loop during the first fraction of a second, so its effect is negligible.
+  \item \textbf{CPU affinity and priority.} The processor is hybrid, and a probe that runs the same CPU-bound loop
+  pinned to each logical processor (\texttt{core\_probe.py}, \Cref{sec:hybrid}) shows that the efficient cores are
+  about 2--2.7 times slower than the performance cores. A preliminary run without affinity showed repetitions up to
+  3.4 times slower than others of the same configuration. Therefore, every benchmark process is created already pinned
+  to logical processor~12 (a performance core) with \texttt{HIGH} priority class. Because the JVM detects a single
+  available processor, the garbage collector is fixed explicitly to the serial collector (\texttt{-XX:+UseSerialGC}),
+  and JIT compilation shares the same core as the measured thread.
+  \item \textbf{Budgets.} Maximum time of one multiplication: 300~s. Memory budget: 4~GiB per process. A configuration
+  that exceeds a limit is stopped and recorded as a timeout or memory failure, and the larger sizes of that language
+  are not attempted. No time is invented for failed configurations.
+  \item \textbf{Summary statistics.} All raw measurements are kept in \texttt{raw\_measurements.csv}. Tables report the
+  median, the first and third quartiles ($Q_1$, $Q_3$) and the interquartile range (IQR), computed with linear
+  interpolation.
+  \item \textbf{Memory metric.} Peak working set (peak resident memory) of the whole process, read with the Win32
+  \texttt{GetProcessMemoryInfo} API after the process has finished. It includes the inputs, the result, temporary
+  objects and the language runtime (interpreter or JVM), so it is not a measure of the matrix storage alone. To avoid
+  measuring a launcher process, Java is started with the \texttt{java.exe} of the JDK. As a reference, the storage of
+  three $n \times n$ \texttt{float64} matrices is $24n^2$ bytes.
+\end{itemize}
+
+\section{Environment}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Hardware and software environment of the reported run.}
+\label{tab:env}
+\begin{tabular}{ll}
+\toprule
+\textbf{Item} & \textbf{Value} \\
+\midrule
+CPU & Intel Core Ultra 7 155H (hybrid: 6 P-cores with 2 threads each, 8 E-cores, 2 LP E-cores) \\
+Cores / logical processors & 16 / 22 \\
+Cache & 24 MB L3 \\
+RAM & 16 GB \\
+Operating system & Windows 11 (build 26200), laptop connected to the power supply \\
+Python & CPython 3.13.0 (NumPy 2.2.6 only for inputs and reference) \\
+Java & Oracle JDK 21.0.5 HotSpot, \texttt{-Xmx4g -XX:+UseSerialGC} \\
+C compiler & GCC 16.2.0 (MinGW-w64 UCRT), \texttt{-O2 -std=c11} \\
+CPU affinity & Logical processor 12 (performance core), \texttt{HIGH} priority class \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The whole configuration is stored in \texttt{config.json} and the environment captured at run time in
+\texttt{environment.json}.
+
+%RESULTS%
+
+\end{document}

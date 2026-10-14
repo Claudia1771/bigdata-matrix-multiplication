@@ -1,0 +1,67 @@
+{
+  "date": "2026-10-14T12:45:59",
+  "cpu": "Intel(R) Core(TM) Ultra 7 155H",
+  "physical_cores": 16,
+  "logical_processors": 22,
+  "ram_gib": 15.4,
+  "os": "Windows 11 (10.0.26200)",
+  "python": "CPython 3.13.0",
+  "numpy (input generation and reference only)": "2.2.6",
+  "java": "java version \"21.0.5\" 2024-10-15 LTS",
+  "java_flags": [
+    "-Xmx4g"
+  ],
+  "gcc": "gcc (MinGW-W64 x86_64-ucrt-posix-seh, built by Brecht Sanders, r1) 16.2.0",
+  "c_flags": [
+    "-O2",
+    "-std=c11"
+  ],
+  "config": {
+    "seed": 42,
+    "generator": "numpy.random.default_rng (PCG64), uniform values in [0, 1)",
+    "dtype": "float64",
+    "sizes": [
+      64,
+      128,
+      256,
+      512,
+      1000,
+      1024,
+      2048
+    ],
+    "correctness_sizes": [
+      1,
+      2,
+      3,
+      17,
+      64,
+      100
+    ],
+    "reps": 5,
+    "reps_costly": 3,
+    "costly_threshold_s": 60,
+    "warmups": {
+      "Python": 1,
+      "Java": 3,
+      "C": 1
+    },
+    "warmups_costly": {
+      "Python": 0,
+      "Java": 1,
+      "C": 0
+    },
+    "time_limit_s": 300,
+    "memory_budget_mb": 4096,
+    "c_flags": [
+      "-O2",
+      "-std=c11"
+    ],
+    "java_flags": [
+      "-Xmx4g"
+    ],
+    "tolerance": {
+      "rtol": 1e-12,
+      "atol": 1e-12
+    }
+  }
+}

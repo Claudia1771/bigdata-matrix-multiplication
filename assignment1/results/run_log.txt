@@ -1,0 +1,49 @@
+﻿{
+  "date": "2026-10-14T13:40:31",
+  "cpu": "Intel(R) Core(TM) Ultra 7 155H",
+  "physical_cores": 16,
+  "logical_processors": 22,
+  "ram_gib": 15.4,
+  "os": "Windows 11 (10.0.26200)",
+  "python": "CPython 3.13.0",
+  "numpy (input generation and reference only)": "2.2.6",
+  "java": "java version \"21.0.5\" 2024-10-15 LTS",
+  "java_flags": [
+    "-Xmx4g",
+    "-XX:+UseSerialGC"
+  ],
+  "gcc": "gcc (MinGW-W64 x86_64-ucrt-posix-seh, built by Brecht Sanders, r1) 16.2.0",
+  "c_flags": [
+    "-O2",
+    "-std=c11"
+  ],
+  "cpu_affinity": [
+    12
+  ],
+  "priority": "high",
+  "power_plugged": true
+} 
+
+Python n=   64  median=    0.0091 s  reps=5 warmups=1  peak=   12.1 MB
+Python n=  128  median=    0.0689 s  reps=5 warmups=1  peak=   14.2 MB
+Python n=  256  median=    0.6035 s  reps=5 warmups=1  peak=   22.5 MB
+Python n=  512  median=   10.5998 s  reps=5 warmups=1  peak=   51.9 MB
+Python n= 1000  median=   71.3133 s  reps=3 warmups=0  peak=  166.4 MB
+Python n= 1024  median=   72.7996 s  reps=3 warmups=0  peak=  173.1 MB
+Python n= 2048  timeout after 0 measured reps (limit 300 s)
+Java   n=   64  median=    0.0001 s  reps=5 warmups=3  peak=   42.1 MB
+Java   n=  128  median=    0.0010 s  reps=5 warmups=3  peak=   43.4 MB
+Java   n=  256  median=    0.0098 s  reps=5 warmups=3  peak=   47.6 MB
+Java   n=  512  median=    0.1114 s  reps=5 warmups=3  peak=   66.6 MB
+Java   n= 1000  median=    1.1287 s  reps=5 warmups=3  peak=  133.3 MB
+Java   n= 1024  median=    1.1937 s  reps=5 warmups=3  peak=  131.8 MB
+Java   n= 2048  median=   69.7284 s  reps=5 warmups=3  peak=  319.8 MB
+C      n=   64  median=    0.0001 s  reps=5 warmups=1  peak=    4.3 MB
+C      n=  128  median=    0.0018 s  reps=5 warmups=1  peak=    4.7 MB
+C      n=  256  median=    0.0137 s  reps=5 warmups=1  peak=    5.6 MB
+C      n=  512  median=    0.1518 s  reps=5 warmups=1  peak=    9.9 MB
+C      n= 1000  median=    0.6591 s  reps=5 warmups=1  peak=   26.8 MB
+C      n= 1024  median=    2.3728 s  reps=5 warmups=1  peak=   27.9 MB
+C      n= 2048  median=   32.1845 s  reps=5 warmups=1  peak=   99.9 MB
+
+Raw results saved in C:\Users\alvar\OneDrive\Escritorio\Universidad\BigData\MatrixMultiplication\assignment1\results

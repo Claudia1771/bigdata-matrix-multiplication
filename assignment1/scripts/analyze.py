@@ -23,6 +23,14 @@ COLORS = {"Python": "#3b6fb6", "Java": "#d9822b", "C": "#2a9d5c"}
 MARKERS = {"Python": "o", "Java": "s", "C": "^"}
 
 
+def set_size_ticks(ax, summary):
+    """Label only the power-of-two sizes (n = 1000 is drawn just left of 1024 without its own label)."""
+    ticks = [n for n in sorted(summary["n"].unique()) if n & (n - 1) == 0]
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(ticks)
+    ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+
+
 def summarise(raw, mem):
     reps = raw[raw["kind"] == "rep"]
     stats = reps.groupby(["language", "n"])["time_s"].agg(
@@ -79,8 +87,7 @@ def plot(summary, config):
     ax.axhline(config["time_limit_s"], color="grey", lw=0.8, ls=":")
     ax.set_xscale("log", base=2)
     ax.set_yscale("log")
-    ax.set_xticks(sorted(summary["n"].unique()))
-    ax.set_xticklabels(sorted(summary["n"].unique()))
+    set_size_ticks(ax, summary)
     ax.set_xlabel("Matrix size n (n × n)")
     ax.set_ylabel("Execution time per multiplication (s)")
     ax.set_title("Median execution time (bars: interquartile range)")
@@ -96,8 +103,7 @@ def plot(summary, config):
         ax.plot(g["n"], g["ns_per_multiply_add"], marker=MARKERS[lang], color=COLORS[lang], label=lang)
     ax.set_xscale("log", base=2)
     ax.set_yscale("log")
-    ax.set_xticks(sorted(summary["n"].unique()))
-    ax.set_xticklabels(sorted(summary["n"].unique()))
+    set_size_ticks(ax, summary)
     ax.set_xlabel("Matrix size n (n × n)")
     ax.set_ylabel("Median time / n³ (ns per multiply-add)")
     ax.set_title("Cost per inner-loop iteration (constant if time grows exactly as n³)")
@@ -115,8 +121,7 @@ def plot(summary, config):
     ax.plot(n_all, 3 * 8 * n_all ** 2 / 2**20, "k--", lw=1, label="Estimate: 3 matrices × 8n² bytes")
     ax.set_xscale("log", base=2)
     ax.set_yscale("log")
-    ax.set_xticks(n_all)
-    ax.set_xticklabels(n_all.astype(int))
+    set_size_ticks(ax, summary)
     ax.set_xlabel("Matrix size n (n × n)")
     ax.set_ylabel("Peak working set of the process (MiB)")
     ax.set_title("Peak memory (whole process, including the runtime)")

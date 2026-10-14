@@ -5,6 +5,29 @@ basic triple-loop matrix multiplication implemented in Python, Java and C?*
 
 The report is [`report/Assignment01_AlvarezGonzalez_Report.pdf`](report/Assignment01_AlvarezGonzalez_Report.pdf).
 
+## Main results
+
+Median time of one multiplication (seconds), every process pinned to one performance core of an Intel Core
+Ultra 7 155H. Full data, quartiles and memory in `results/summary.csv`.
+
+| n | Python | Java | C |
+|---:|---:|---:|---:|
+| 64 | 0.00906 | 0.000113 | 0.0000777 |
+| 128 | 0.0689 | 0.00105 | 0.00179 |
+| 256 | 0.604 | 0.00984 | 0.0137 |
+| 512 | 10.60 | 0.111 | 0.152 |
+| 1000 | 71.31 | 1.129 | 0.659 |
+| 1024 | 72.80 | 1.194 | 2.373 |
+| 2048 | timeout (> 300 s) | 69.73 | 32.18 |
+
+- The three implementations produce bit-identical results on the same inputs.
+- Time grows as n³ only while the data fits in the caches; the fitted exponents over n = 256–2048 are 3.4–4.1.
+- The contiguous C layout is 3.6× slower at n = 1024 than at n = 1000 (power-of-two cache conflicts);
+  Java and Python are not affected. No language is the fastest for every size.
+- Without CPU affinity the hybrid processor made the results up to 2.7× slower and much more variable.
+
+![Median execution time](results/fig1_time_vs_n.png)
+
 ## Contents
 
 | Path | Description |

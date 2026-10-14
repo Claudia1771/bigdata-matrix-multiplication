@@ -8,6 +8,7 @@ Outputs: results/summary.csv            median, quartiles, IQR, min, max, peak m
          results/fig3_memory.png        peak working set vs n, with the array-storage estimate
          results/fig4_dispersion.png    every measured repetition relative to its median
          results/pinned_vs_unpinned.csv comparison with the preliminary run without CPU affinity
+         results/fig5_pinned_vs_unpinned.png  the same comparison as a figure
 Quartiles use numpy.percentile with linear interpolation.
 """
 import json
@@ -169,7 +170,48 @@ def compare_preliminary(summary):
     cur["pinned_max_over_min"] = cur["max"] / cur["min"]
     both = cur.merge(pre, on=["language", "n"], how="outer")
     both.to_csv(RESULTS / "pinned_vs_unpinned.csv", index=False, float_format="%.6g")
+    plot_pinned_vs_unpinned(both)
     return both
+
+
+def plot_pinned_vs_unpinned(both, n_ref=1024):
+    """(a) median at n_ref with min-max range for both runs; (b) max/min ratio of every configuration."""
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4.4), gridspec_kw={"width_ratios": [1, 1.25]})
+    ref = both[both["n"] == n_ref].set_index("language").loc[LANGUAGES]
+    x = np.arange(len(LANGUAGES))
+    for offset, prefix, label, hatch in ((-0.2, "unpinned_", "Preliminary (no affinity)", "//"),
+                                         (0.2, "", "Final (pinned to a P-core)", None)):
+        med = ref[f"{prefix}median"]
+        err = [med - ref[f"{prefix}min"], ref[f"{prefix}max"] - med]
+        ax1.bar(x + offset, med, width=0.4, yerr=err, capsize=4, label=label,
+                color=[COLORS[l] for l in LANGUAGES], alpha=0.45 if hatch else 0.95, hatch=hatch,
+                edgecolor="black", linewidth=0.6)
+        for xi, m, top in zip(x + offset, med, ref[f"{prefix}max"]):
+            ax1.text(xi, top * 1.08, f"{m:.3g} s", ha="center", va="bottom", fontsize=7.5)
+    ax1.set_yscale("log")
+    ax1.set_ylim(top=ref[["max", "unpinned_max"]].max().max() * 4)
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(LANGUAGES)
+    ax1.set_ylabel(f"Time per multiplication, n = {n_ref} (s)")
+    ax1.set_title(f"(a) Median and min–max range, n = {n_ref}")
+    ax1.legend(fontsize=8, loc="upper right")
+    ax1.grid(True, axis="y", which="both", alpha=0.3)
+
+    for j, lang in enumerate(LANGUAGES):
+        g = both[both["language"] == lang]
+        ax2.scatter(np.full(len(g), j - 0.12), g["unpinned_max_over_min"], marker="x", color=COLORS[lang], s=35,
+                    label="Preliminary (no affinity)" if j == 0 else None)
+        ax2.scatter(np.full(len(g), j + 0.12), g["pinned_max_over_min"], marker="o", color=COLORS[lang], s=25,
+                    label="Final (pinned)" if j == 0 else None)
+    ax2.axhline(1, color="k", lw=0.8)
+    ax2.set_xticks(range(len(LANGUAGES)))
+    ax2.set_xticklabels(LANGUAGES)
+    ax2.set_ylabel("Slowest / fastest repetition")
+    ax2.set_title("(b) Spread of every configuration (n = 64–2048)")
+    ax2.legend(fontsize=8)
+    ax2.grid(True, axis="y", alpha=0.3)
+    fig.tight_layout()
+    fig.savefig(RESULTS / "fig5_pinned_vs_unpinned.png", dpi=170)
 
 
 def main():

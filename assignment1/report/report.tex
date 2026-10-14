@@ -403,7 +403,22 @@ logical processors of the performance cores and 0.45--0.58~s on the efficient an
 A first complete run without affinity (kept in \texttt{results/preliminary\_run\_unpinned}) produced repetitions of the
 same configuration that differed by factors of up to 6.6 (Python, $n = 512$) and 3.8 (C, $n = 2048$), and its medians
 were clearly higher: for $n = 1024$, 150.1~s (Python), 2.85~s (Java) and 6.32~s (C), against 72.8~s, 1.19~s and 2.37~s
-when the process was pinned to a performance core. These preliminary values are not used in the rest of the report.
+when the process was pinned to a performance core (\Cref{fig:pinning}). These preliminary values are not used in the
+rest of the report.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig5_pinned_vs_unpinned.png}
+\caption{Preliminary run without CPU affinity versus final run pinned to a performance core. (a)~Median time for
+$n = 1024$, with the range from the fastest to the slowest repetition. (b)~Ratio between the slowest and the fastest
+repetition of every configuration ($n = 64$--$2048$).}
+\label{fig:pinning}
+\end{figure}
+
+Pinning reduced the medians for $n = 1024$ by a factor of 2.1 (Python), 2.4 (Java) and 2.7 (C). It also removed the
+most extreme spreads: in the preliminary run the slowest repetition was up to 6.6 times slower than the fastest, while
+in the final run this ratio is at most 2.0, except for the single Java outlier at $n = 128$ discussed in
+\Cref{sec:variability}.
 
 After the preliminary run, and before the final run, three changes were made to the protocol, all of which are
 reflected in \Cref{chap:method}: (1)~every process was pinned to a performance core with high priority; (2)~because the
@@ -489,6 +504,7 @@ A least-squares fit of $\log t = \log a + b \log n$ over $n \geq 256$ gives expo
 ($n = 256$--$1024$), $4.11$ for Java and $3.64$ for C ($n = 256$--$2048$), all above the theoretical value of 3.
 
 \section{Variability}
+\label{sec:variability}
 
 \Cref{fig:disp} shows every measured repetition divided by the median of its configuration. For 14 of the 20 completed
 configurations the IQR is below 10\% of the median. The largest relative IQRs are C at $n = 1000$ (38\%), $n = 1024$

@@ -1,0 +1,37 @@
+{
+  "seed": 42,
+  "data_dir": "~/matmul_data/assignment2",
+  "dense_generator": "numpy.random.default_rng(seed + n) (PCG64): A then B, uniform float64 values in [0, 1); identical to Assignment 1",
+  "sparse_generator": "numpy.random.default_rng([seed, n, structure_id, round(density_pct * 1e4), matrix_id]); values 1 - uniform[0, 1), i.e. in (0, 1]",
+
+  "dense": {
+    "methods": ["naive", "ikj", "transpose", "tiled"],
+    "sizes": [256, 512, 1000, 1024, 2048, 4096],
+    "block": 64,
+    "block_tuning": {"sizes": [1024, 2048], "blocks": [16, 32, 64, 128, 256]}
+  },
+
+  "sparse": {
+    "n": 2048,
+    "densities_pct": [50, 10, 5, 1, 0.5, 0.1, 0.01],
+    "structures": ["uniform", "banded"],
+    "scaling": {"structure": "uniform", "density_pct": 0.1, "sizes": [1024, 2048, 4096, 8192, 16384, 32768]}
+  },
+
+  "correctness": {"dense_sizes": [1, 2, 3, 17, 64, 100, 129], "sparse_cases": [[100, 5, "uniform"], [100, 5, "banded"], [257, 1, "uniform"], [257, 1, "banded"], [64, 50, "uniform"]]},
+
+  "reps": 5,
+  "reps_costly": 3,
+  "costly_threshold_s": 20,
+  "warmups": 1,
+  "warmups_costly": 0,
+  "time_limit_s": 300,
+  "memory_budget_mb": 4096,
+  "c_flags": ["-O2", "-std=c11"],
+  "cpu_affinity": [12],
+  "sibling_cpu": 13,
+  "priority": "high",
+  "require_ac_power": true,
+  "cooldown_s": 10,
+  "tolerance": {"rtol": 1e-12, "atol": 1e-12}
+}

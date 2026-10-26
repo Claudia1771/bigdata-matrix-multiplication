@@ -1,0 +1,28 @@
+﻿block_tuning   tiled     n=  1024 dense    d=100    b=128  median=   0.20911 s reps=5 peak=    27.9 MB
+block_tuning   tiled     n=  2048 dense    d=100    b=128  median=   1.66807 s reps=5 peak=    99.9 MB
+block_tuning   tiled     n=  1024 dense    d=100    b=16   median=   0.24944 s reps=5 peak=    27.9 MB
+block_tuning   tiled     n=  2048 dense    d=100    b=16   median=   2.10340 s reps=5 peak=    99.9 MB
+block_tuning   tiled     n=  1024 dense    d=100    b=256  median=   0.22049 s reps=5 peak=    27.9 MB
+block_tuning   tiled     n=  2048 dense    d=100    b=256  median=   2.14797 s reps=5 peak=    99.9 MB
+block_tuning   tiled     n=  1024 dense    d=100    b=32   median=   0.23159 s reps=5 peak=    27.9 MB
+block_tuning   tiled     n=  2048 dense    d=100    b=32   median=   1.97947 s reps=5 peak=    99.9 MB
+block_tuning   tiled     n=  1024 dense    d=100    b=64   median=   0.22507 s reps=5 peak=    27.9 MB
+block_tuning   tiled     n=  2048 dense    d=100    b=64   median=   1.83132 s reps=5 peak=    99.9 MB
+Selected block size: 128 (medians at n=2048: {16: 2.1033979, 32: 1.9794664, 64: 1.8313223, 128: 1.6680743, 256: 2.1479694})
+dense          ikj       n=   256 dense    d=100    b=-    median=   0.00311 s reps=5 peak=     5.6 MB
+dense          ikj       n=   512 dense    d=100    b=-    median=   0.02532 s reps=5 peak=     9.9 MB
+dense          ikj       n=  1000 dense    d=100    b=-    median=   0.19929 s reps=5 peak=    26.8 MB
+dense          ikj       n=  1024 dense    d=100    b=-    median=   0.22323 s reps=5 peak=    27.9 MB
+dense          ikj       n=  2048 dense    d=100    b=-    median=   4.17900 s reps=5 peak=    99.9 MB
+dense          ikj       n=  4096 dense    d=100    b=-    median=  38.20874 s reps=3 peak=   387.9 MB
+dense          naive     n=   256 dense    d=100    b=-    median=   0.01292 s reps=5 peak=     5.4 MB
+dense          naive     n=   512 dense    d=100    b=-    median=   0.10011 s reps=5 peak=     9.9 MB
+dense          naive     n=  1000 dense    d=100    b=-    median=   0.57249 s reps=5 peak=    26.8 MB
+dense          naive     n=  1024 dense    d=100    b=-    median=   2.18945 s reps=5 peak=    27.9 MB
+dense          naive     n=  2048 dense    d=100    b=-    median= 100.05434 s reps=5 peak=   100.0 MB
+dense          naive     n=  4096 timeout
+dense          tiled     n=   256 dense    d=100    b=128  median=   0.00433 s reps=5 peak=     5.7 MB
+dense          tiled     n=   512 dense    d=100    b=128  median=   0.03392 s reps=5 peak=     9.9 MB
+dense          tiled     n=  1000 dense    d=100    b=128  median=   0.27220 s reps=5 peak=    26.8 MB
+dense          tiled     n=  1024 dense    d=100    b=128  median=   0.36077 s reps=5 peak=    27.9 MB
+dense          tiled     n=  2048 dense    d=100    b=128  median=   2.26246 s reps=5 peak=    99.9 MB

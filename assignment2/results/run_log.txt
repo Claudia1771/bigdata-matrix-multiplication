@@ -1,0 +1,97 @@
+﻿block_tuning   tiled     n=  1024 dense    d=100    b=128  median=   0.20361 s reps=5 peak=    27.9 MB
+block_tuning   tiled     n=  2048 dense    d=100    b=128  median=   1.73992 s reps=5 peak=    99.9 MB
+block_tuning   tiled     n=  1024 dense    d=100    b=16   median=   0.24280 s reps=5 peak=    27.9 MB
+block_tuning   tiled     n=  2048 dense    d=100    b=16   median=   2.02797 s reps=5 peak=    99.9 MB
+block_tuning   tiled     n=  1024 dense    d=100    b=256  median=   0.20069 s reps=5 peak=    27.9 MB
+block_tuning   tiled     n=  2048 dense    d=100    b=256  median=   2.04236 s reps=5 peak=    99.9 MB
+block_tuning   tiled     n=  1024 dense    d=100    b=32   median=   0.20503 s reps=5 peak=    27.9 MB
+block_tuning   tiled     n=  2048 dense    d=100    b=32   median=   1.72952 s reps=5 peak=    99.9 MB
+block_tuning   tiled     n=  1024 dense    d=100    b=64   median=   0.21863 s reps=5 peak=    27.9 MB
+block_tuning   tiled     n=  2048 dense    d=100    b=64   median=   1.67750 s reps=5 peak=    99.9 MB
+Selected block size: 64 (medians at n=2048: {16: 2.027973, 32: 1.7295233, 64: 1.6775046, 128: 1.7399189, 256: 2.0423554})
+dense          ikj       n=   256 dense    d=100    b=-    median=   0.00293 s reps=5 peak=     5.7 MB
+dense          ikj       n=   512 dense    d=100    b=-    median=   0.02278 s reps=5 peak=     9.9 MB
+dense          ikj       n=  1000 dense    d=100    b=-    median=   0.18262 s reps=5 peak=    26.8 MB
+dense          ikj       n=  1024 dense    d=100    b=-    median=   0.19590 s reps=5 peak=    27.9 MB
+dense          ikj       n=  2048 dense    d=100    b=-    median=   4.12232 s reps=5 peak=    99.9 MB
+dense          ikj       n=  4096 dense    d=100    b=-    median=  35.52435 s reps=3 peak=   387.9 MB
+dense          naive     n=   256 dense    d=100    b=-    median=   0.01170 s reps=5 peak=     5.6 MB
+dense          naive     n=   512 dense    d=100    b=-    median=   0.11074 s reps=5 peak=     9.9 MB
+dense          naive     n=  1000 dense    d=100    b=-    median=   0.50155 s reps=5 peak=    26.8 MB
+dense          naive     n=  1024 dense    d=100    b=-    median=   2.13982 s reps=5 peak=    27.9 MB
+dense          naive     n=  2048 dense    d=100    b=-    median=  86.56388 s reps=5 peak=   100.0 MB
+dense          naive     n=  4096 timeout
+dense          tiled     n=   256 dense    d=100    b=64   median=   0.00283 s reps=5 peak=     5.6 MB
+dense          tiled     n=   512 dense    d=100    b=64   median=   0.02358 s reps=5 peak=     9.9 MB
+dense          tiled     n=  1000 dense    d=100    b=64   median=   0.16639 s reps=5 peak=    26.8 MB
+dense          tiled     n=  1024 dense    d=100    b=64   median=   0.19628 s reps=5 peak=    27.9 MB
+dense          tiled     n=  2048 dense    d=100    b=64   median=   1.65918 s reps=5 peak=    99.9 MB
+dense          tiled     n=  4096 dense    d=100    b=64   median=  15.30808 s reps=5 peak=   387.9 MB
+dense          transpose n=   256 dense    d=100    b=-    median=   0.00587 s reps=5 peak=     5.9 MB
+dense          transpose n=   512 dense    d=100    b=-    median=   0.05410 s reps=5 peak=    11.9 MB
+dense          transpose n=  1000 dense    d=100    b=-    median=   0.42647 s reps=5 peak=    34.5 MB
+dense          transpose n=  1024 dense    d=100    b=-    median=   0.50226 s reps=5 peak=    35.9 MB
+dense          transpose n=  2048 dense    d=100    b=-    median=   5.48706 s reps=5 peak=   131.9 MB
+dense          transpose n=  4096 dense    d=100    b=-    median=  44.62890 s reps=3 peak=   515.9 MB
+sparse_density convert   n=  2048 banded   d=0.01   b=-    median=   0.01086 s reps=5 peak=    68.5 MB
+sparse_density convert   n=  2048 banded   d=0.1    b=-    median=   0.01109 s reps=5 peak=    68.5 MB
+sparse_density convert   n=  2048 banded   d=0.5    b=-    median=   0.01211 s reps=5 peak=    69.0 MB
+sparse_density convert   n=  2048 banded   d=1      b=-    median=   0.01203 s reps=5 peak=    69.9 MB
+sparse_density convert   n=  2048 banded   d=10     b=-    median=   0.01292 s reps=5 peak=    87.2 MB
+sparse_density convert   n=  2048 banded   d=5      b=-    median=   0.01231 s reps=5 peak=    77.6 MB
+sparse_density convert   n=  2048 banded   d=50     b=-    median=   0.01810 s reps=5 peak=   164.0 MB
+sparse_density convert   n=  2048 uniform  d=0.01   b=-    median=   0.01105 s reps=5 peak=    68.5 MB
+sparse_density convert   n=  2048 uniform  d=0.1    b=-    median=   0.01168 s reps=5 peak=    68.5 MB
+sparse_density convert   n=  2048 uniform  d=0.5    b=-    median=   0.01156 s reps=5 peak=    69.0 MB
+sparse_density convert   n=  2048 uniform  d=1      b=-    median=   0.01017 s reps=5 peak=    69.9 MB
+sparse_density convert   n=  2048 uniform  d=10     b=-    median=   0.01751 s reps=5 peak=    87.2 MB
+sparse_density convert   n=  2048 uniform  d=5      b=-    median=   0.01325 s reps=5 peak=    77.6 MB
+sparse_density convert   n=  2048 uniform  d=50     b=-    median=   0.04478 s reps=5 peak=   164.0 MB
+sparse_density dense     n=  2048 banded   d=0.01   b=64   median=   1.55201 s reps=5 peak=   100.0 MB
+sparse_density dense     n=  2048 banded   d=0.1    b=64   median=   1.58256 s reps=5 peak=   100.0 MB
+sparse_density dense     n=  2048 banded   d=0.5    b=64   median=   1.63852 s reps=5 peak=   100.1 MB
+sparse_density dense     n=  2048 banded   d=1      b=64   median=   1.61974 s reps=5 peak=   100.4 MB
+sparse_density dense     n=  2048 banded   d=10     b=64   median=   1.60954 s reps=5 peak=   100.0 MB
+sparse_density dense     n=  2048 banded   d=5      b=64   median=   1.61785 s reps=5 peak=   101.6 MB
+sparse_density dense     n=  2048 banded   d=50     b=64   median=   1.62294 s reps=5 peak=   100.0 MB
+sparse_density dense     n=  2048 uniform  d=0.01   b=64   median=   1.62178 s reps=5 peak=   100.0 MB
+sparse_density dense     n=  2048 uniform  d=0.1    b=64   median=   1.60437 s reps=5 peak=   100.0 MB
+sparse_density dense     n=  2048 uniform  d=0.5    b=64   median=   1.62306 s reps=5 peak=   100.1 MB
+sparse_density dense     n=  2048 uniform  d=1      b=64   median=   1.61090 s reps=5 peak=   100.4 MB
+sparse_density dense     n=  2048 uniform  d=10     b=64   median=   1.63407 s reps=5 peak=   100.0 MB
+sparse_density dense     n=  2048 uniform  d=5      b=64   median=   1.63669 s reps=5 peak=   101.6 MB
+sparse_density dense     n=  2048 uniform  d=50     b=64   median=   1.63670 s reps=5 peak=   115.9 MB
+sparse_density spgemm    n=  2048 banded   d=0.01   b=-    median=   0.00004 s reps=5 peak=     4.5 MB
+sparse_density spgemm    n=  2048 banded   d=0.1    b=-    median=   0.00010 s reps=5 peak=     4.6 MB
+sparse_density spgemm    n=  2048 banded   d=0.5    b=-    median=   0.00063 s reps=5 peak=     5.3 MB
+sparse_density spgemm    n=  2048 banded   d=1      b=-    median=   0.00138 s reps=5 peak=     6.1 MB
+sparse_density spgemm    n=  2048 banded   d=10     b=-    median=   0.05852 s reps=5 peak=    23.1 MB
+sparse_density spgemm    n=  2048 banded   d=5      b=-    median=   0.01854 s reps=5 peak=    13.7 MB
+sparse_density spgemm    n=  2048 banded   d=50     b=-    median=   1.28203 s reps=5 peak=    92.0 MB
+sparse_density spgemm    n=  2048 uniform  d=0.01   b=-    median=   0.00003 s reps=5 peak=     4.5 MB
+sparse_density spgemm    n=  2048 uniform  d=0.1    b=-    median=   0.00020 s reps=5 peak=     4.6 MB
+sparse_density spgemm    n=  2048 uniform  d=0.5    b=-    median=   0.00882 s reps=5 peak=     9.2 MB
+sparse_density spgemm    n=  2048 uniform  d=1      b=-    median=   0.03933 s reps=5 peak=    18.3 MB
+sparse_density spgemm    n=  2048 uniform  d=10     b=-    median=   0.30708 s reps=5 peak=    77.9 MB
+sparse_density spgemm    n=  2048 uniform  d=5      b=-    median=   0.27928 s reps=5 peak=    73.3 MB
+sparse_density spgemm    n=  2048 uniform  d=50     b=-    median=   1.88234 s reps=5 peak=   100.1 MB
+sparse_scaling convert   n=  1024 uniform  d=0.1    b=-    median=   0.00224 s reps=5 peak=    20.5 MB
+sparse_scaling convert   n=  2048 uniform  d=0.1    b=-    median=   0.01143 s reps=5 peak=    68.5 MB
+sparse_scaling convert   n=  4096 uniform  d=0.1    b=-    median=   0.04801 s reps=5 peak=   260.8 MB
+sparse_scaling convert   n=  8192 uniform  d=0.1    b=-    median=   0.19516 s reps=5 peak=  1031.3 MB
+sparse_scaling convert   n= 16384 uniform  d=0.1    not_attempted_memory_budget
+sparse_scaling convert   n= 32768 uniform  d=0.1    not_attempted
+sparse_scaling dense     n=  1024 uniform  d=0.1    b=64   median=   0.19169 s reps=5 peak=    28.0 MB
+sparse_scaling dense     n=  2048 uniform  d=0.1    b=64   median=   1.59393 s reps=5 peak=   100.0 MB
+sparse_scaling dense     n=  4096 uniform  d=0.1    b=64   median=  13.32075 s reps=5 peak=   388.1 MB
+sparse_scaling dense     n=  8192 uniform  d=0.1    b=64   median= 110.16887 s reps=3 peak=  1539.2 MB
+sparse_scaling dense     n= 16384 uniform  d=0.1    not_attempted_memory_budget
+sparse_scaling dense     n= 32768 uniform  d=0.1    not_attempted
+sparse_scaling spgemm    n=  1024 uniform  d=0.1    b=-    median=   0.00004 s reps=5 peak=     4.4 MB
+sparse_scaling spgemm    n=  2048 uniform  d=0.1    b=-    median=   0.00021 s reps=5 peak=     4.6 MB
+sparse_scaling spgemm    n=  4096 uniform  d=0.1    b=-    median=   0.00199 s reps=5 peak=     5.7 MB
+sparse_scaling spgemm    n=  8192 uniform  d=0.1    b=-    median=   0.02106 s reps=5 peak=    12.2 MB
+sparse_scaling spgemm    n= 16384 uniform  d=0.1    b=-    median=   0.20878 s reps=5 peak=    60.8 MB
+sparse_scaling spgemm    n= 32768 uniform  d=0.1    b=-    median=   2.09031 s reps=5 peak=   426.0 MB
+
+Results saved in C:\Users\alvar\OneDrive\Escritorio\Universidad\BigData\MatrixMultiplication\assignment2\results

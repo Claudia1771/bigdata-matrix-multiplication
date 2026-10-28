@@ -360,6 +360,10 @@ The protocol of Assignment~1 is reused:
   the tiled product only (the expansion of the CSR inputs to dense arrays is not timed). \texttt{convert}: the
   dense$\to$CSR conversion of $A$ and $B$. Conversion is therefore measured separately and added explicitly when
   stated.
+  \item \textbf{Very short configurations.} The shortest measurements are the CSR products at 0.01\% density (about
+  30~$\mu$s), still about 300 times longer than the sub-microsecond resolution of the monotonic timer
+  (\texttt{clock\_gettime(CLOCK\_MONOTONIC)}). Every multiplication is therefore timed individually instead of in
+  batches; the higher relative IQR of these configurations is reported in \Cref{chap:results}.
   \item \textbf{Repetitions.} Each configuration runs in a fresh process with 1 warm-up and 5 measured repetitions;
   configurations whose predicted time (previous size of the same series $\times$ cubic growth) exceeds 20~s use
   3 repetitions and no warm-up. Medians and interquartile ranges (IQR) are reported~\cite{hoefler2015}.
@@ -399,6 +403,7 @@ CPU affinity & Logical processor 12 (performance core), \texttt{HIGH} priority, 
 
 % =================================================
 \chapter{Results}
+\label{chap:results}
 % =================================================
 
 All values come from \texttt{results/raw\_measurements.csv}, \texttt{runs.csv}, \texttt{summary.csv},
@@ -505,6 +510,11 @@ $n = 256$ to 10.1~ns at $n = 2048$, and its time multiplies by 40 from $n = 1024
 $1024$ (cubic model: 1.07) the baseline becomes 4.3 times slower, \texttt{ikj} 1.07 times and \texttt{tiled} and
 \texttt{transpose} 1.18 times. Peak memory is about $24n^2$ bytes for every method except \texttt{transpose}, which
 needs the extra copy of $B^{\mathsf T}$ (516~MiB against 388~MiB for $n = 4096$).
+
+\paragraph{Limits.} The largest attempted size was $n = 4096$ for all four methods. The baseline did not finish its
+first multiplication with $n = 4096$ within the 300~s limit, so its largest feasible tested size is $n = 2048$; for
+\texttt{ikj}, \texttt{transpose} and \texttt{tiled} the largest feasible tested size is $n = 4096$. No dense
+configuration came close to the 4~GiB memory budget (maximum 516~MiB).
 
 \Cref{fig:freq} shows the effective clock of the pinned core, recorded every 0.5~s for configurations that lasted long
 enough to be sampled. The optimised methods ran at 4.0--4.8~GHz, but the baseline ran at 3.1~GHz for $n = 2048$ and
@@ -690,6 +700,24 @@ directly in a sparse format rather than converted from a dense array.
 4~GiB budget (1.5~GiB and 110~s), while the CSR product handled $n = 32768$ in 2.1~s and 426~MiB. The advantage is not
 unlimited: the density of the product grew from 0.1\% to 3.2\% over this range, so for even larger $n$ at the same
 input density the result would eventually become dense.
+
+\section{Observed bottlenecks}
+
+The measurements point to the following bottlenecks, in order of impact:
+\begin{itemize}
+  \item \textbf{Memory access of the baseline.} The column-wise traversal of $B$ is the main bottleneck of the dense
+  baseline: its cost per operation grows from 0.7 to 10~ns as $B$ leaves the caches, it suffers conflict misses for
+  power-of-two sizes, and the processor lowers its clock while it waits for memory.
+  \item \textbf{L3 capacity for loop reordering.} \texttt{ikj} becomes three times more expensive per operation when
+  $B$ (32~MiB at $n = 2048$) no longer fits in the 24~MB L3 cache; blocking removes this bottleneck.
+  \item \textbf{Dependent additions in \texttt{transpose}.} Its single-accumulator reduction is plausibly the reason
+  why it is slower than \texttt{ikj} even when all data fits in cache.
+  \item \textbf{Fill-in and irregular access in the CSR product.} For uniform inputs the result becomes dense and the
+  scattered updates of the accumulator cost 13--46~ns per multiply-add, so the advantage of sparse storage disappears
+  at about 44\% density.
+  \item \textbf{Conversion.} The $O(n^2)$ dense $\to$ CSR conversion is the bottleneck for very sparse inputs.
+  \item \textbf{Memory capacity.} Dense storage limits the problem size to $n = 8192$ within the 4~GiB budget.
+\end{itemize}
 
 \section{Optimisation versus sparse storage}
 

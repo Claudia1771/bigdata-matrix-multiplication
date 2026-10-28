@@ -60,7 +60,16 @@ gcc -O2 -std=c11 -o build/sparse.exe src/sparse.c
 
 Every benchmark process is started pinned to the logical processor in `cpu_affinity` (12, a performance core of
 the Intel Core Ultra 7 155H used for the report) with high priority; on another machine choose one of its fastest
-cores (see `assignment1/scripts/core_probe.py`).
+cores (see `assignment1/scripts/core_probe.py`) and set `sibling_cpu` to the other hardware thread of that core.
+
+**Execution conditions.** The reported run used Windows' *Best performance* power mode on AC power. The harness
+refuses to start on battery (`require_ac_power`), waits `cooldown_s` seconds before every configuration, and records
+for each configuration in `results/runs.csv` whether it stayed on AC power, the utilisation of the system and of the
+sibling logical processor, and the effective clock of the pinned core.
+
+**Discarded runs.** `results/discarded_run_on_battery/` (laptop on battery) and
+`results/interrupted_run_balanced_plan/` (*Balanced* power mode, stopped) are earlier runs kept as evidence; they are
+not used in the report.
 
 ## Inputs
 

@@ -40,9 +40,10 @@ Versions used for the reported run (full details in `results/environment.json`):
 
 ## How to reproduce
 
-From `assignment2/scripts`:
+From the `assignment2` folder:
 
 ```bash
+cd scripts
 pip install -r ../requirements.txt
 python generate_inputs.py      # about 0.5 GB of inputs in ~/matmul_data/assignment2
 python verify.py               # builds both programs and runs the correctness tests

@@ -61,11 +61,24 @@ Versions used for the reported run (see `results/environment.json` for the full 
 - GCC 16.2.0 (MinGW-w64 on Windows; `gcc` in `PATH`)
 - Windows 11. The memory measurement uses the Win32 `GetProcessMemoryInfo` API; on other systems the timing works but memory is not recorded.
 
-## How to reproduce
+## Quick run (a few seconds)
 
-From the `assignment1/scripts` folder:
+After the inputs have been generated and the programs built (steps below), one size can be run directly from the
+`assignment1` folder. Each line printed is `<warmup|rep> <seconds> <checksum_bits>`; the checksum is identical in
+the three languages.
 
 ```bash
+python src/python/matmul.py bench 256 1 3 data
+java -cp build MatMul bench 256 1 3 data
+build/matmul.exe bench 256 1 3 data
+```
+
+## How to reproduce
+
+From the `assignment1` folder (the full benchmark takes about 40 minutes):
+
+```bash
+cd scripts
 pip install -r ../requirements.txt
 python core_probe.py           # optional: find the performance cores of the machine
 python generate_inputs.py      # shared inputs (about 90 MB, not stored in git)

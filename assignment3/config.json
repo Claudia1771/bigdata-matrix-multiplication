@@ -28,6 +28,7 @@
   "c_flags": ["-O2", "-std=c11", "-fopenmp"],
   "priority": "high",
   "require_ac_power": true,
-  "cooldown_s": 5,
+  "cooldown_s": 20,
+  "order_seed": 2026,
   "tolerance": {"rtol": 1e-12, "atol": 1e-12}
 }

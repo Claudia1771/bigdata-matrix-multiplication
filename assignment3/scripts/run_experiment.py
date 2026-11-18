@@ -15,6 +15,7 @@ import csv
 import json
 import platform
 import queue
+import random
 import statistics
 import subprocess
 import sys
@@ -25,7 +26,8 @@ from datetime import datetime
 import numpy as np
 import psutil
 
-from common import RESULTS, affinity_mask, build, data_dir, load_config, peak_working_set_mb, start_with_affinity
+from common import (RESULTS, CorePerformanceCounter, affinity_mask, build, data_dir, load_config, peak_working_set_mb,
+                    start_with_affinity)
 
 LOAD_MARGIN_S = 60
 
@@ -38,7 +40,8 @@ def on_ac_power():
 def run_process(args, mask, config):
     time.sleep(config.get("cooldown_s", 0))
     psutil.cpu_percent(percpu=True)
-    start, ac_always, samples = datetime.now(), on_ac_power(), []
+    clock = CorePerformanceCounter(config["affinity_plan"]["sequential_cpu"][0])  # CPU 12 belongs to every mask
+    start, ac_always, samples, clocks = datetime.now(), on_ac_power(), [], []
     proc = start_with_affinity(args, mask, config)
     lines = queue.Queue()
     threading.Thread(target=lambda: [lines.put(l) for l in proc.stdout] + [lines.put(None)], daemon=True).start()
@@ -53,6 +56,7 @@ def run_process(args, mask, config):
             line = lines.get(timeout=0.5)
         except queue.Empty:
             samples.append(psutil.cpu_percent(percpu=True))
+            clocks.append(clock.sample())
             ac_always &= on_ac_power()
             try:
                 over = ps is not None and ps.memory_info().rss / 2**20 > config["memory_budget_mb"]
@@ -77,6 +81,8 @@ def run_process(args, mask, config):
                "on_ac_power": ac_always,
                "allowed_cpus_pct": round(float(load[:, mask].mean()), 1),
                "other_cpus_pct": round(float(load[:, others].mean()), 1) if others else ""}
+    clocks = [c for c in clocks if c]
+    monitor["cpu12_clock_mhz"] = round(float(np.mean(clocks))) if clocks else ""
     return out, status, peak, monitor
 
 
@@ -89,6 +95,9 @@ def configurations(config):
     sc = config["schedule_comparison"]
     for p in sc["threads"]:
         cfgs.append({"experiment": "schedule", "method": "par", "n": sc["n"], "threads": p, "schedule": "static"})
+    # The laptop slows down under sustained load, so a fixed order would favour the configurations run first.
+    # The order is shuffled with a fixed seed (recorded in runs.csv as "order").
+    random.Random(config["order_seed"]).shuffle(cfgs)
     return cfgs
 
 
@@ -132,7 +141,7 @@ def main():
     data = data_dir(config)
     raw, runs, prev = [], [], {}
 
-    for cfg in configurations(config):
+    for order, cfg in enumerate(configurations(config)):
         key = (cfg["experiment"], cfg["method"], cfg["threads"], cfg["schedule"])
         costly = key in prev and prev[key][1] * (cfg["n"] / prev[key][0]) ** 3 > config["costly_threshold_s"]
         warmups = config["warmups_costly" if costly else "warmups"]
@@ -142,7 +151,7 @@ def main():
                 str(config["block"]), cfg["schedule"] if cfg["schedule"] != "-" else "dynamic"]
         lines, status, peak, monitor = run_process(args, mask, config)
 
-        label = {**cfg, "affinity": " ".join(map(str, mask)), "logical_cpus": len(mask)}
+        label = {**cfg, "order": order, "affinity": " ".join(map(str, mask)), "logical_cpus": len(mask)}
         for i, parts in enumerate(lines):
             raw.append({**label, "dtype": "float64", "kind": parts[0], "index": i if parts[0] == "warmup" else i - warmups,
                         "time_s": float(parts[1]), "checksum_bits": int(parts[2]), "team_size": int(parts[3])})

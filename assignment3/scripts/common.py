@@ -64,6 +64,43 @@ def start_with_affinity(args, mask, config):
         me.cpu_affinity(original)
 
 
+class CorePerformanceCounter:
+    """Effective speed of one logical processor (same as Assignment 2): the Windows counter
+    '\\Processor Information(0,<cpu>)\\% Processor Performance' (100% = base frequency), read with
+    PdhAddEnglishCounterW so that it also works on localised systems."""
+
+    class _Value(ctypes.Structure):
+        _fields_ = [("CStatus", ctypes.c_ulong), ("padding", ctypes.c_ulong), ("doubleValue", ctypes.c_double)]
+
+    def __init__(self, cpu):
+        self.ok = os.name == "nt"
+        if not self.ok:
+            return
+        self.pdh = ctypes.WinDLL("pdh")
+        self.query, self.counters = ctypes.c_void_p(), {}
+        self.ok = self.pdh.PdhOpenQueryW(None, None, ctypes.byref(self.query)) == 0
+        for name, path in (("perf", f"\\Processor Information(0,{cpu})\\% Processor Performance"),
+                           ("base_mhz", f"\\Processor Information(0,{cpu})\\Processor Frequency")):
+            handle = ctypes.c_void_p()
+            if self.ok and self.pdh.PdhAddEnglishCounterW(self.query, path, None, ctypes.byref(handle)) == 0:
+                self.counters[name] = handle
+        self.ok = self.ok and len(self.counters) == 2
+        if self.ok:
+            self.pdh.PdhCollectQueryData(self.query)
+
+    def sample(self):
+        """Effective clock in MHz since the previous sample, or None."""
+        if not self.ok or self.pdh.PdhCollectQueryData(self.query) != 0:
+            return None
+        values = []
+        for name in ("perf", "base_mhz"):
+            v = self._Value()
+            if self.pdh.PdhGetFormattedCounterValue(self.counters[name], 0x200, None, ctypes.byref(v)) != 0:
+                return None
+            values.append(v.doubleValue)
+        return values[0] * values[1] / 100
+
+
 class _ProcessMemoryCounters(ctypes.Structure):
     _fields_ = [("cb", ctypes.c_ulong), ("PageFaultCount", ctypes.c_ulong),
                 ("PeakWorkingSetSize", ctypes.c_size_t), ("WorkingSetSize", ctypes.c_size_t),

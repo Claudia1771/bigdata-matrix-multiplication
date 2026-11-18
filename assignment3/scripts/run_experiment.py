@@ -17,6 +17,7 @@ import platform
 import queue
 import statistics
 import subprocess
+import sys
 import threading
 import time
 from datetime import datetime
@@ -113,11 +114,21 @@ def save(rows, name):
 
 def main():
     config = load_config()
-    if config.get("require_ac_power") and not on_ac_power():
-        raise SystemExit("The laptop is running on battery: connect the charger before benchmarking.")
+    allow_battery = "--allow-battery" in sys.argv
+    if config.get("require_ac_power") and not on_ac_power() and not allow_battery:
+        raise SystemExit("The laptop is running on battery: connect the charger, or pass --allow-battery to run anyway "
+                         "(the power state of every configuration is recorded in runs.csv).")
     exe = build(config)
     RESULTS.mkdir(exist_ok=True)
-    (RESULTS / "environment.json").write_text(json.dumps(environment(config, exe), indent=2))
+    env = environment(config, exe)
+    env["power_at_start"] = "AC" if on_ac_power() else "battery"
+    env["allow_battery"] = allow_battery
+    env["power_mode_overlay_ac"] = subprocess.run(
+        ["powershell", "-NoProfile", "-Command",
+         "(Get-ItemProperty 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power\\User\\PowerSchemes')."
+         "ActiveOverlayAcPowerScheme, (Get-ItemProperty 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power\\User\\"
+         "PowerSchemes').ActiveOverlayDcPowerScheme"], capture_output=True, text=True).stdout.split()
+    (RESULTS / "environment.json").write_text(json.dumps(env, indent=2))
     data = data_dir(config)
     raw, runs, prev = [], [], {}
 

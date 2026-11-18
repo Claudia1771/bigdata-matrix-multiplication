@@ -50,49 +50,52 @@ static void save(const char *path, const double *C, int n) {
     fclose(f);
 }
 
-/* The 3 inner loops of one (ii, kk, jj) block: identical in both methods. */
-static inline void block_kernel(const double *A, const double *B, double *C, int n, int block, int ii, int kk, int jj) {
+/* All the work for one block row of C (rows ii .. ii+block-1): the kk and jj block loops and the i-k-j loops
+ * inside each block, exactly as in the tiled method of Assignment 2. Both methods call this same function, which
+ * is kept out of line so that the compiler generates (and vectorises) a single copy of the kernel: the methods then
+ * differ only in how the block rows are distributed. `restrict` states that C, freshly allocated, never overlaps A
+ * or B; this is what lets the compiler vectorise the j loop, as it did in Assignment 2 when C was a local variable. */
+__attribute__((noinline))
+static void block_row(const double *restrict A, const double *restrict B, double *restrict C, int n, int block, int ii) {
     int imax = ii + block < n ? ii + block : n;
-    int kmax = kk + block < n ? kk + block : n;
-    int jmax = jj + block < n ? jj + block : n;
-    for (int i = ii; i < imax; i++) {
-        double *Ci = C + (size_t)i * n;
-        for (int k = kk; k < kmax; k++) {
-            double a = A[i * n + k];
-            const double *Bk = B + (size_t)k * n;
-            for (int j = jj; j < jmax; j++)
-                Ci[j] += a * Bk[j];
+    for (int kk = 0; kk < n; kk += block) {
+        int kmax = kk + block < n ? kk + block : n;
+        for (int jj = 0; jj < n; jj += block) {
+            int jmax = jj + block < n ? jj + block : n;
+            for (int i = ii; i < imax; i++) {
+                double *Ci = C + (size_t)i * n;
+                for (int k = kk; k < kmax; k++) {
+                    double a = A[i * n + k];
+                    const double *Bk = B + (size_t)k * n;
+                    for (int j = jj; j < jmax; j++)
+                        Ci[j] += a * Bk[j];
+                }
+            }
         }
     }
 }
 
-/* Sequential baseline: the tiled method of Assignment 2. */
+/* Sequential baseline: the tiled method of Assignment 2 (block rows processed in order). */
 static double *mm_seq(const double *A, const double *B, int n, int block, int dynamic_schedule) {
     (void)dynamic_schedule;
     double *C = calloc((size_t)n * n, sizeof(double));
     for (int ii = 0; ii < n; ii += block)
-        for (int kk = 0; kk < n; kk += block)
-            for (int jj = 0; jj < n; jj += block)
-                block_kernel(A, B, C, n, block, ii, kk, jj);
+        block_row(A, B, C, n, block, ii);
     return C;
 }
 
-/* Parallel version: block rows of C distributed among the threads of the team. */
+/* Parallel version: the block rows of C are distributed among the threads of the team. */
 static double *mm_par(const double *A, const double *B, int n, int block, int dynamic_schedule) {
     double *C = calloc((size_t)n * n, sizeof(double));
     int nblocks = (n + block - 1) / block;
     if (dynamic_schedule) {
         #pragma omp parallel for schedule(dynamic, 1)
         for (int b = 0; b < nblocks; b++)
-            for (int kk = 0; kk < n; kk += block)
-                for (int jj = 0; jj < n; jj += block)
-                    block_kernel(A, B, C, n, block, b * block, kk, jj);
+            block_row(A, B, C, n, block, b * block);
     } else {
         #pragma omp parallel for schedule(static)
         for (int b = 0; b < nblocks; b++)
-            for (int kk = 0; kk < n; kk += block)
-                for (int jj = 0; jj < n; jj += block)
-                    block_kernel(A, B, C, n, block, b * block, kk, jj);
+            block_row(A, B, C, n, block, b * block);
     }
     return C;
 }

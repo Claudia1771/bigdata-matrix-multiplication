@@ -1,0 +1,36 @@
+﻿schedule par n= 2048 p=12 static  median=   0.3730 s reps=5 cpus=12 other_load=0.0
+scaling  seq n= 2048 p= 1 -       median=   1.5908 s reps=5 cpus= 1 other_load=1.1
+scaling  par n= 2048 p= 2 dynamic median=   0.9002 s reps=5 cpus= 2 other_load=2.1
+scaling  par n= 4096 p=12 dynamic median=   5.3651 s reps=5 cpus=12 other_load=11.5
+scaling  par n= 1024 p=22 dynamic median=   0.0445 s reps=5 cpus=22 other_load=
+scaling  par n= 2048 p=12 dynamic median=   0.3516 s reps=5 cpus=12 other_load=0.0
+scaling  par n= 1024 p=44 dynamic median=   0.0581 s reps=5 cpus=22 other_load=
+scaling  par n= 4096 p= 1 dynamic median=  18.0523 s reps=5 cpus= 1 other_load=2.8
+scaling  par n= 1024 p= 8 dynamic median=   0.0418 s reps=5 cpus= 8 other_load=0.0
+scaling  par n= 2048 p= 1 dynamic median=   1.6871 s reps=5 cpus= 1 other_load=2.2
+scaling  par n= 4096 p= 2 dynamic median=  12.5947 s reps=5 cpus= 2 other_load=2.9
+schedule par n= 2048 p=16 static  median=   0.2344 s reps=5 cpus=22 other_load=
+scaling  par n= 1024 p= 1 dynamic median=   0.1958 s reps=5 cpus= 1 other_load=0.0
+scaling  par n= 4096 p= 6 dynamic median=   5.9774 s reps=5 cpus= 6 other_load=5.2
+scaling  par n= 1024 p= 6 dynamic median=   0.0413 s reps=5 cpus= 6 other_load=0.0
+scaling  par n= 1024 p= 4 dynamic median=   0.0576 s reps=5 cpus= 4 other_load=0.0
+scaling  par n= 1024 p= 2 dynamic median=   0.0974 s reps=5 cpus= 2 other_load=0.0
+scaling  seq n= 1024 p= 1 -       median=   0.1975 s reps=5 cpus= 1 other_load=0.0
+scaling  par n= 4096 p=44 dynamic median=   4.3236 s reps=5 cpus=22 other_load=
+scaling  par n= 2048 p= 6 dynamic median=   0.3354 s reps=5 cpus= 6 other_load=0.0
+scaling  par n= 4096 p= 4 dynamic median=   6.7957 s reps=5 cpus= 4 other_load=4.8
+scaling  par n= 2048 p= 8 dynamic median=   0.3418 s reps=5 cpus= 8 other_load=0.0
+scaling  par n= 4096 p= 8 dynamic median=   5.9393 s reps=5 cpus= 8 other_load=6.1
+scaling  par n= 2048 p=22 dynamic median=   0.2457 s reps=5 cpus=22 other_load=
+scaling  par n= 2048 p= 4 dynamic median=   0.4975 s reps=5 cpus= 4 other_load=4.9
+scaling  par n= 2048 p=16 dynamic median=   0.2500 s reps=5 cpus=22 other_load=
+scaling  par n= 4096 p=16 dynamic median=   5.0817 s reps=5 cpus=22 other_load=
+scaling  par n= 2048 p=44 dynamic median=   0.2406 s reps=5 cpus=22 other_load=
+schedule par n= 2048 p= 6 static  median=   0.3645 s reps=5 cpus= 6 other_load=0.0
+schedule par n= 2048 p=22 static  median=   0.2578 s reps=5 cpus=22 other_load=
+scaling  par n= 4096 p=22 dynamic median=   5.8714 s reps=5 cpus=22 other_load=
+scaling  par n= 1024 p=12 dynamic median=   0.0468 s reps=5 cpus=12 other_load=0.0
+scaling  seq n= 4096 p= 1 -       median=  17.3277 s reps=5 cpus= 1 other_load=2.1
+scaling  par n= 1024 p=16 dynamic median=   0.0458 s reps=5 cpus=22 other_load=
+
+Results saved in C:\Users\alvar\OneDrive\Escritorio\Universidad\BigData\MatrixMultiplication\assignment3\results

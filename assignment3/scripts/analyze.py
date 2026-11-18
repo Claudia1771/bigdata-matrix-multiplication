@@ -163,6 +163,33 @@ def main():
     fig.tight_layout()
     fig.savefig(RESULTS / "fig5_memory.png", dpi=170)
 
+    # Figure 6: effective clock of CPU 12 (in every affinity mask) versus threads. The counter is sampled every
+    # 0.5 s, so only configurations that last long enough have a value (mostly n = 4096).
+    if "cpu12_clock_mhz" in summary and summary["cpu12_clock_mhz"].notna().any():
+        fig, ax = plt.subplots(figsize=(8, 4.2))
+        shade(ax, 4.9)
+        for n, g in summary[summary["experiment"] == "scaling"].groupby("n"):
+            g = g[g["cpu12_clock_mhz"].notna()]
+            if g.empty:
+                continue
+            color, marker = SIZE_STYLE[n]
+            gp = g[g["method"] == "par"].sort_values("threads")
+            ax.plot(gp["threads"], gp["cpu12_clock_mhz"] / 1000, marker=marker, color=color, label=f"parallel, n = {n}")
+            gs = g[g["method"] == "seq"]
+            ax.scatter([1] * len(gs), gs["cpu12_clock_mhz"] / 1000, marker="*", s=160, color=color, edgecolor="k",
+                       zorder=5, label=f"sequential, n = {n}")
+        ax.set_xscale("log", base=2)
+        ax.set_xticks(threads)
+        ax.set_xticklabels(threads)
+        ax.set_ylim(0, 4.9)
+        ax.set_xlabel("Threads p")
+        ax.set_ylabel("Mean effective clock of CPU 12 (GHz)")
+        ax.set_title("Clock of a performance core while each configuration ran")
+        ax.grid(True, alpha=0.3)
+        ax.legend(fontsize=8, loc="lower left")
+        fig.tight_layout()
+        fig.savefig(RESULTS / "fig6_clock.png", dpi=170)
+
     pd.set_option("display.width", 220)
     print("Sequential medians:", seq.round(4).to_dict())
     print(par[["n", "threads", "logical_cpus", "team_size", "median", "iqr_pct_of_median", "speedup", "efficiency",

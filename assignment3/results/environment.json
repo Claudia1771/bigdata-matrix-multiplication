@@ -1,0 +1,115 @@
+{
+  "date": "2026-11-18T13:49:32",
+  "cpu": "Intel(R) Core(TM) Ultra 7 155H",
+  "physical_cores": 16,
+  "logical_processors": 22,
+  "ram_gib": 15.4,
+  "os": "Windows 11 (10.0.26200)",
+  "gcc": "gcc (MinGW-W64 x86_64-ucrt-posix-seh, built by Brecht Sanders, r1) 16.2.0",
+  "c_flags": [
+    "-O2",
+    "-std=c11",
+    "-fopenmp"
+  ],
+  "openmp": "libgomp (GCC), OMP_DYNAMIC=false",
+  "priority": "high",
+  "config": {
+    "seed": 42,
+    "data_dir": "~/matmul_data/assignment2",
+    "inputs": "Dense inputs of Assignment 2 (identical to Assignment 1): numpy.random.default_rng(42 + n), A then B, uniform float64 in [0, 1)",
+    "sizes": [
+      1024,
+      2048,
+      4096
+    ],
+    "threads": [
+      1,
+      2,
+      4,
+      6,
+      8,
+      12,
+      16,
+      22,
+      44
+    ],
+    "block": 64,
+    "schedule": "dynamic",
+    "schedule_comparison": {
+      "n": 2048,
+      "threads": [
+        6,
+        12,
+        16,
+        22
+      ]
+    },
+    "affinity_plan": {
+      "description": "p <= 6: one thread per physical performance core; 7-12: both hardware threads of the performance cores; > 12: all 22 logical processors (performance, efficient and low-power cores); 44 = 2x oversubscription",
+      "p_cores_one_thread": [
+        12,
+        0,
+        10,
+        14,
+        16,
+        18
+      ],
+      "p_cores_siblings": [
+        13,
+        1,
+        11,
+        15,
+        17,
+        19
+      ],
+      "sequential_cpu": [
+        12
+      ]
+    },
+    "correctness": {
+      "sizes": [
+        1,
+        2,
+        3,
+        17,
+        64,
+        100,
+        129,
+        300
+      ],
+      "threads": [
+        1,
+        2,
+        3,
+        7,
+        22,
+        44
+      ]
+    },
+    "reps": 5,
+    "reps_costly": 3,
+    "costly_threshold_s": 20,
+    "warmups": 1,
+    "warmups_costly": 0,
+    "time_limit_s": 300,
+    "memory_budget_mb": 4096,
+    "c_flags": [
+      "-O2",
+      "-std=c11",
+      "-fopenmp"
+    ],
+    "priority": "high",
+    "require_ac_power": true,
+    "cooldown_s": 20,
+    "order_seed": 2026,
+    "tolerance": {
+      "rtol": 1e-12,
+      "atol": 1e-12
+    }
+  },
+  "power_at_start": "AC",
+  "allow_battery": false,
+  "power_mode_overlay_ac": [
+    "ded574b5-45a0-4f42-8737-46345c09c238"
+  ]
+}

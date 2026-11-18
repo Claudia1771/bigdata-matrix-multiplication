@@ -24,6 +24,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+
+/* Monotonic high-resolution timer (omp_get_wtime has only millisecond resolution on this platform). */
+static double now(void) {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ts.tv_sec + ts.tv_nsec / 1e9;
+}
 
 static double *load(const char *path, int n) {
     double *M = malloc(sizeof(double) * n * n);
@@ -133,9 +141,9 @@ int main(int argc, char **argv) {
         snprintf(path, sizeof path, "%s/B_%d.bin", argv[7], n);
         double *B = load(path, n);
         for (int r = 0; r < warmups + reps; r++) {
-            double start = omp_get_wtime();
+            double start = now();
             double *C = mm(A, B, n, block, dynamic_schedule);
-            double elapsed = omp_get_wtime() - start;
+            double elapsed = now() - start;
             printf("%s %.9f %" PRId64 " %d\n", r < warmups ? "warmup" : "rep", elapsed, checksum_bits(C, n), team);
             fflush(stdout);
             free(C);

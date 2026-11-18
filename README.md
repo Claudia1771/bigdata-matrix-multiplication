@@ -6,7 +6,7 @@ Grado en Ciencia e Ingeniería de Datos · Universidad de Las Palmas de Gran Can
 |---|---|---|
 | 1 | Basic Matrix Multiplication in Different Languages (Python, Java and C) | [`assignment1/`](assignment1/) |
 | 2 | Optimized Approaches and Sparse Matrices | [`assignment2/`](assignment2/) |
-| 3 | Parallel Multiplication; (optional) Vectorisation | *pending* |
+| 3 | Parallel Multiplication; (optional) Vectorisation | [`assignment3/`](assignment3/) |
 | 4 | Distributed Multiplication | *pending* |
 
 Each folder contains its own README with build and run instructions, the source code, the raw
